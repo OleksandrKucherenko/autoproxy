@@ -1,0 +1,61 @@
+apply plugin: 'com.android.application'
+
+/** Allow to override min sdk by provided compiler properties. */
+def minSdk = {
+    def propertyName = 'com.olku.app.minSdk'
+    def defaultSdk = androidMinSdk
+
+    project.hasProperty(propertyName) ? project.property(propertyName) : defaultSdk
+}
+
+
+android {
+    compileSdkVersion androidCompileSdk
+    buildToolsVersion androidBuildTools
+
+    defaultConfig {
+        applicationId 'com.olku.autoproxy.sample'
+
+        minSdkVersion minSdk()
+        targetSdkVersion androidTargetSdk
+
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation "com.android.support:support-annotations:${supportVersion}"
+    implementation "com.android.support:appcompat-v7:${supportVersion}"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+
+    /* RxJava - https://github.com/ReactiveX/RxAndroid */
+    implementation "io.reactivex:rxandroid:1.2.1"
+    implementation "io.reactivex:rxjava:1.3.4"
+
+    /* AutoProxy generator */
+    compileOnly project(':autoproxy-annotations')
+    compileOnly project(':autoproxy-rx-annotations')
+    compileOnly project(':autoproxy-rx-generators')
+
+    annotationProcessor project(':autoproxy-rx-generators')
+    annotationProcessor project(':autoproxy-processor')
+
+}

@@ -96,7 +96,7 @@ public interface MvpView {
     Observable<Boolean> dummyCall();
 
     /** Returns Observable.empty() */
-    @AutoProxy.Yield(adapter = RetRx.class, value = RetRx.EMPTY)
+    @AutoProxy.Yield(adapter = RetRxGenerator.class, value = RetRx.EMPTY)
     Observable<Boolean> dummyCall(final List<String> generic);
 
     /** Throws exception on False result from predicate. */
@@ -104,7 +104,7 @@ public interface MvpView {
     Observable<Boolean> dummyCall(final String message, final List<String> args);
 
     /** Returns Observable.error(...) on False result from predicate. */
-    @AutoProxy.Yield(adapter = RetRx.class, value = RetRx.ERROR)
+    @AutoProxy.Yield(adapter = RetRxGenerator.class, value = RetRx.ERROR)
     Observable<Boolean> dummyCall(final String message, final Object... args);
 
     /** Returns ZERO on False result from predicate. */
@@ -129,31 +129,77 @@ public interface MvpView {
 
 ```java
 public abstract class Proxy_MvpView implements MvpView {
-    protected final MvpView inner;
+  protected final MvpView inner;
 
-    public Proxy_MvpView(@NonNull final MvpView instance){
-        this.inner = instance;
+  public Proxy_MvpView(@NonNull final MvpView instance) {
+    this.inner = instance;
+  }
+
+  public abstract boolean predicate(final String methodName, final Object... args);
+
+  public final Observable<Boolean> dummyCall() {
+    if (!predicate( "dummyCall" )) {
+      // @com.olku.annotations.AutoProxy.Yield("null")
+      return (Observable<Boolean>)null;
     }
+    return this.inner.dummyCall();
+  }
 
-    public abstract boolean predicate(final String methodName, final Object... args);
-
-    public final boolean dispatchDeepLink(@NonNull final Uri deepLink) {
-        if (!predicate( "dispatchDeepLink", deepLink )) {
-            // @com.olku.annotations.AutoProxy.Yield("direct")
-            // direct call, ignore predicate result
-        }
-        return this.inner.dispatchDeepLink(deepLink);
+  public final Observable<Boolean> dummyCall(final List<String> generic) {
+    if (!predicate( "dummyCall", generic )) {
+      // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="empty")
+      return Observable.empty();
     }
+    return this.inner.dummyCall(generic);
+  }
 
-    /* ... Other methods ... */
-    @NonNull
-    public final Observable<Boolean> startHearthAnimation() {
-        if (!predicate( "startHearthAnimation" )) {
-            // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.JustRxGenerator.class, value="true")
-            return Observable.just(true);
-        }
-        return this.inner.startHearthAnimation();
+  public final Observable<Boolean> dummyCall(final String message, final List<String> args) {
+    if (!predicate( "dummyCall", message, args )) {
+      // @com.olku.annotations.AutoProxy.Yield("throws")
+      throw new UnsupportedOperationException("cannot resolve return type.");
     }
+    return this.inner.dummyCall(message, args);
+  }
+
+  public final Observable<Boolean> dummyCall(final String message, final Object... args) {
+    if (!predicate( "dummyCall", message, args )) {
+      // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="error")
+      return Observable.error(new UnsupportedOperationException("unsupported method call"));
+    }
+    return this.inner.dummyCall(message, args);
+  }
+
+  public final double numericCall() {
+    if (!predicate( "numericCall" )) {
+      // @com.olku.annotations.AutoProxy.Yield("0")
+      return 0;
+    }
+    return this.inner.numericCall();
+  }
+
+  public final boolean booleanCall() {
+    if (!predicate( "booleanCall" )) {
+      // @com.olku.annotations.AutoProxy.Yield("false")
+      return false;
+    }
+    return this.inner.booleanCall();
+  }
+
+  public final boolean dispatchDeepLink(@NonNull final Uri deepLink) {
+    if (!predicate( "dispatchDeepLink", deepLink )) {
+      // @com.olku.annotations.AutoProxy.Yield("direct")
+      // direct call, ignore predicate result
+    }
+    return this.inner.dispatchDeepLink(deepLink);
+  }
+
+  public final Observable<Boolean> startHearthAnimation() {
+    if (!predicate( "startHearthAnimation" )) {
+      // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.JustRxGenerator.class, value="true")
+      return Observable.just(true);
+    }
+    return this.inner.startHearthAnimation();
+  }
 }
 
 ```

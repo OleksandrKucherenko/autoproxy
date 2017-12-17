@@ -1,5 +1,6 @@
 buildscript {
     ext {
+        gradlePlugin = project.GRADLE_PLUGIN
         /* Test Driven Development */
         useTdd = Boolean.parseBoolean("${project.USE_TDD}")
         useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
@@ -13,6 +14,8 @@ buildscript {
     dependencies {
         /* In case of submodule usage, do not try to apply own plugin classpath, root project is responsible for that. */
         if (rootProject.buildDir == project.buildDir) {
+            /* Connect Android Build Plugin */
+            classpath "com.android.tools.build:gradle:${gradlePlugin}"
             /* To confirm JaCoCo version run: $ ./gradlew buildEnvironment */
             //region classpath "org.jacoco:org.jacoco.core:${jacocoVersion}"
             if (useJacoco) {
@@ -34,6 +37,12 @@ allprojects {
 
     /* PUBLISH GLOBAL VARIABLES FOR ALL SUB-PROJECTS */
     ext {
+        /* Android SDK and Tools */
+        androidMinSdk = Integer.parseInt(project.MIN_SDK)
+        androidTargetSdk = Integer.parseInt(project.TARGET_SDK)
+        androidCompileSdk = Integer.parseInt(project.COMPILE_SDK)
+        androidBuildTools = project.BUILD_TOOLS
+
         /* 3rd party libraries */
         supportVersion = project.ANDROID_SUPPORT_VERSION
 
@@ -63,10 +72,12 @@ allprojects {
             compilerArgs << "-Xlint:all"            // Turn on all warnings
             compilerArgs << "-Xlint:-options"       // Turn off "missing" bootclasspath warning
             compilerArgs << "-Xlint:-path"          // Turn off warning - annotation processing
-            compilerArgs << "-Xlint:-processing"    // Turn off warning about not claiming annotations
+            compilerArgs << "-Xlint:-processing"
+            // Turn off warning about not claiming annotations
             compilerArgs << "-Xlint:-unchecked"     // Turn off warning unchecked cast used
             compilerArgs << "-Xlint:-rawtypes"      // Turn off warning for raw types
-            compilerArgs << "-Xlint:-classfile"     // Turn off warning classfile version 52.0 vs 51.0
+            compilerArgs << "-Xlint:-classfile"
+            // Turn off warning classfile version 52.0 vs 51.0
             compilerArgs << "-Xlint:-sunapi"        // Turn off SUN Api usage warnings
             compilerArgs << "-XDenableSunApiLintControl"
             compilerArgs << "-Werror"               // Turn warnings into errors
