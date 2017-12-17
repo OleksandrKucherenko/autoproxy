@@ -1,0 +1,104 @@
+buildscript {
+    ext {
+        /* Test Driven Development */
+        useTdd = Boolean.parseBoolean("${project.USE_TDD}")
+        useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
+        jacocoVersion = project.JACOCO_VERSION
+    }
+    repositories {
+        jcenter()
+        /* Google beta/alpha releases */
+        maven { url 'https://maven.google.com' }
+    }
+    dependencies {
+        /* In case of submodule usage, do not try to apply own plugin classpath, root project is responsible for that. */
+        if (rootProject.buildDir == project.buildDir) {
+            /* To confirm JaCoCo version run: $ ./gradlew buildEnvironment */
+            //region classpath "org.jacoco:org.jacoco.core:${jacocoVersion}"
+            if (useJacoco) {
+                /* Resolves issue of incorrect version use in one of jacoco/android plugin inner tasks */
+                classpath "org.jacoco:org.jacoco.core:${jacocoVersion}"
+                classpath "org.jacoco:org.jacoco.report:${jacocoVersion}"
+            }
+            //endregion
+        }
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        /* Google beta/alpha releases */
+        maven { url 'https://maven.google.com' }
+    }
+
+    /* PUBLISH GLOBAL VARIABLES FOR ALL SUB-PROJECTS */
+    ext {
+        /* 3rd party libraries */
+        supportVersion = project.ANDROID_SUPPORT_VERSION
+
+        /* Test Driven Development */
+        useTdd = Boolean.parseBoolean("${project.USE_TDD}")
+        useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
+
+        /* Unit testing libraries */
+        junitVersion = project.JUNIT_VERSION
+        hamcrestVersion = project.HAMCREST_VERSION
+        assertjVersion = project.ASSERTJ_VERSION
+        mockitoVersion = project.MOCKITO_VERSION
+    }
+
+    /* Update Java compiler options for making visible all warnings. JAVA 8! */
+    tasks.withType(JavaCompile) {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+
+        /* JAVA 8 in Libraries: https://goo.gl/ueVMG7 */
+        configure(options) {
+            // display additional information about annotation processing
+            compilerArgs << "-XprintRounds"
+            compilerArgs << "-XprintProcessorInfo"
+            compilerArgs << "-Xmaxerrs" << "1000000"
+
+            compilerArgs << "-Xlint:all"            // Turn on all warnings
+            compilerArgs << "-Xlint:-options"       // Turn off "missing" bootclasspath warning
+            compilerArgs << "-Xlint:-path"          // Turn off warning - annotation processing
+            compilerArgs << "-Xlint:-processing"    // Turn off warning about not claiming annotations
+            compilerArgs << "-Xlint:-unchecked"     // Turn off warning unchecked cast used
+            compilerArgs << "-Xlint:-rawtypes"      // Turn off warning for raw types
+            compilerArgs << "-Xlint:-classfile"     // Turn off warning classfile version 52.0 vs 51.0
+            compilerArgs << "-Xlint:-sunapi"        // Turn off SUN Api usage warnings
+            compilerArgs << "-XDenableSunApiLintControl"
+            compilerArgs << "-Werror"               // Turn warnings into errors
+            compilerArgs << "-Xdiags:verbose"       // Turn on verbose errors
+
+            /* force incremental java compilation */
+            incremental = true
+
+            deprecation = true
+            encoding = 'UTF-8'
+//
+//            /* hack android libraries, force support of Java 8 */
+//            compilerArgs << "-Xbootclasspath/a:" + System.properties.get("java.home") + "/lib/rt.jar"
+        }
+    }
+
+    /* Turn on logging for all tests, filter to show failures/skips only */
+    tasks.withType(Test) {
+        testLogging {
+            exceptionFormat "full"
+            showCauses true
+            showExceptions true
+            showStackTraces true
+            showStandardStreams true
+            events "failed", "skipped"
+        }
+    }
+}
+
+/** remove the root project build directory on clean task call. */
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+println "Is submodule: ${rootProject.buildDir != project.buildDir}"
