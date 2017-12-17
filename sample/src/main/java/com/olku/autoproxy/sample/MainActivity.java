@@ -15,8 +15,17 @@ public class MainActivity extends AppCompatActivity implements MvpView {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);
+    }
 
+    @NonNull
+    public MvpView getProxy() {
+        return new Proxy_MvpView(this) {
+            @Override
+            public boolean predicate(String methodName, Object... args) {
+                return !isFinishing();
+            }
+        };
     }
 
     //region View interface
