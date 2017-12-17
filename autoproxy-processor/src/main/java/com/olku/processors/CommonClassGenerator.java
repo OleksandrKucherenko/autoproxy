@@ -245,11 +245,15 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         final Class<?> adapter = annotation.adapter();
         final ReturnsPoet poet;
 
-        if (RetBool.class == adapter) {
+        if (RetBool.class == adapter || RetBoolGenerator.class == adapter) {
             poet = RetBoolGenerator.getInstance();
-        } else if (RetNumber.class == adapter) {
+        } else if (Returns.class == adapter && isRetBoolValue(value)) {
+            poet = RetBoolGenerator.getInstance();
+        } else if (RetNumber.class == adapter || RetNumberGenerator.class == adapter) {
             poet = RetNumberGenerator.getInstance();
-        } else if (Returns.class == adapter) {
+        } else if (Returns.class == adapter && isRetNumberValue(value)) {
+            poet = RetNumberGenerator.getInstance();
+        } else if (Returns.class == adapter || ReturnsGenerator.class == adapter) {
             poet = ReturnsGenerator.getInstance();
         } else {
             // create instance of generator by reflection info
@@ -262,6 +266,14 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         if (!composed) {
             ReturnsGenerator.getInstance().compose(returnType, Returns.THROWS, builder);
         }
+    }
+
+    private boolean isRetBoolValue(String value) {
+        return RetBool.TRUE.equals(value) || RetBool.FALSE.equals(value);
+    }
+
+    private boolean isRetNumberValue(String value) {
+        return RetNumber.ZERO.equals(value) || RetNumber.MAX.equals(value) || RetNumber.MIN.equals(value) || RetNumber.MINUS_ONE.equals(value);
     }
 
     @NonNull
