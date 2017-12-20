@@ -22,10 +22,16 @@ public @interface AutoProxy {
     @Retention(CLASS)
     @Target(value = ElementType.METHOD)
     @interface Yield {
-        /** Return value adapter. */
+        /** Default return value generator adapter. */
         Class<?> adapter() default Returns.class;
 
-        /** Value to extract. */
+        /** Adapter code generation customization. */
         String value() default Returns.THROWS;
+    }
+
+    /** Required real call return value post-processing. */
+    @Retention(CLASS)
+    @Target(value = ElementType.METHOD)
+    @interface AfterCall {
     }
 }

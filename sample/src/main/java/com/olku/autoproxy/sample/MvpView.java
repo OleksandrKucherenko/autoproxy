@@ -1,7 +1,7 @@
 package com.olku.autoproxy.sample;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import android.support.annotation.*;
 
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.RetBool;
@@ -49,4 +49,5 @@ public interface MvpView {
     /** Returns Observable.just(true) on False result from predicate. */
     @AutoProxy.Yield(adapter = JustRxGenerator.class, value = "true")
     Observable<Boolean> startHearthAnimation();
+
 }

@@ -1,7 +1,6 @@
 package com.olku.processors;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.annotation.*;
 
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
@@ -23,6 +22,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -37,7 +37,7 @@ public class TypeProcessor {
     public static boolean IS_DEBUG = AutoProxyProcessor.IS_DEBUG;
 
     final Element element;
-    final Name simpleClassName;
+    final String flatClassName;
     final Name elementName;
     final Name packageName;
     final TypeMirror elementType;
@@ -51,15 +51,48 @@ public class TypeProcessor {
         this.logger = logger;
 
         elementName = element.getSimpleName();
-        simpleClassName = element.getEnclosingElement().getSimpleName();
+        flatClassName = flatName(element);
 
-        final Symbol.TypeSymbol enclosingElement = (Symbol.TypeSymbol) element.getEnclosingElement();
-        packageName = enclosingElement.getQualifiedName();
+        final Symbol.PackageSymbol packageInfo = (Symbol.PackageSymbol) findPackage(element);
+        packageName = packageInfo.getQualifiedName();
         elementType = element.asType();
 
         final Attribute.Compound ap = findAutoProxy(element.getAnnotationMirrors());
         this.annotation = extractAnnotation(ap);
         methods = new ArrayList<>();
+    }
+
+    /** Compose flat name for provided class element. Nested classes will be divided by '$' symbol. */
+    public String flatName(@NonNull final Element classInfo) {
+        StringBuilder builder = new StringBuilder();
+
+        Element start = classInfo;
+        String divider = "";
+
+        while (null != start && !(start instanceof PackageElement)) {
+            builder.insert(0, start.getSimpleName() + divider);
+
+            start = ((Symbol) start).owner;
+
+            divider = "$";
+        }
+
+        return builder.toString();
+    }
+
+    /** Find package name for provided class element. */
+    @NonNull
+    public PackageElement findPackage(@NonNull final Element classInfo) {
+        Element start = classInfo;
+
+        while (null != start && !(start instanceof PackageElement)) {
+            start = ((Symbol) start).owner;
+        }
+
+        if (null != start)
+            return (PackageElement) start;
+
+        throw new AssertionError("Cannot find a package name for class. " + classInfo);
     }
 
     /** Extract methods from all inheritance methods. */
@@ -136,7 +169,7 @@ public class TypeProcessor {
     public String toString() {
         return "" + "\n"
                 + "Package name         : " + packageName.toString() + "\n"
-//                + "Package root name    : " + simpleClassName.toString() + "\n"
+//                + "Package root name    : " + flatClassName.toString() + "\n"
                 + "Element type         : " + elementType.toString() + "\n"
                 + "Element name         : " + elementName.toString() + "\n"
                 + "Annotation           : " + annotation.toString() + "\n"

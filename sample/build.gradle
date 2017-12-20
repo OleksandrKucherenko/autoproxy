@@ -58,4 +58,11 @@ dependencies {
     annotationProcessor project(':autoproxy-rx-generators')
     annotationProcessor project(':autoproxy-processor')
 
+    /* AutoValue, https://github.com/google/auto */
+    compileOnly "org.glassfish:javax.annotation:10.0-b28"
+    compileOnly "com.google.auto.value:auto-value:1.5.2"
+    annotationProcessor "com.google.auto.value:auto-value:1.5.2"
+
+    /* Unit test */
+    testCompile "junit:junit:${junitVersion}"
 }

@@ -1,7 +1,6 @@
 package com.olku.processors;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.annotation.*;
 
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
@@ -19,6 +18,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
@@ -51,6 +52,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     /** Pre-call / predicate method name. */
     protected static final String PREDICATE = "predicate";
+    protected static final String AFTERCALL = "afterCall";
 
     /** Data type for processing. */
     protected final TypeProcessor type;
@@ -58,6 +60,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     protected final StringWriter errors = new StringWriter();
     /** Resolved super type name. */
     protected final TypeName superType;
+    /** Is any 'after calls' annotations found. */
+    protected final AtomicBoolean afterCalls = new AtomicBoolean();
 
     //region Constructor
 
@@ -85,6 +89,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
             // auto-generate method proxy calls
             createMethods(classSpec);
+
+            // if any after call annotation found in class/methods
+            if (afterCalls.get()) {
+                classSpec.addMethod(createAfterCall().build());
+            }
 
             // save class to disk
             final JavaFile javaFile = JavaFile.builder(type.packageName.toString(), classSpec.build()).build();
@@ -120,7 +129,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     @NonNull
     protected TypeSpec.Builder createClass(@NonNull final FieldSpec... members) {
-        final TypeSpec.Builder builder = TypeSpec.classBuilder("Proxy_" + type.elementName)
+        final TypeSpec.Builder builder = TypeSpec.classBuilder("Proxy_" + type.flatClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
 
         // TODO: mimic annotations of the super type
@@ -178,6 +187,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         }
     }
 
+    /** Create predicate method declaration. */
     @NonNull
     protected MethodSpec.Builder createPredicate() {
         // TODO: resolve potential name conflict
@@ -195,6 +205,23 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
+    /** Create afterCall method declaration. */
+    @NonNull
+    protected MethodSpec.Builder createAfterCall() {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(AFTERCALL);
+        builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
+
+        builder.addTypeVariable(TypeVariableName.get("R", Object.class));
+
+        builder.returns(TypeVariableName.get("R"));
+
+        builder.addParameter(String.class, "methodName", Modifier.FINAL);
+
+        builder.addParameter(TypeVariableName.get("R"), "result", Modifier.FINAL);
+
+        return builder;
+    }
+
     @NonNull
     protected MethodSpec.Builder createMethod(final Symbol.MethodSymbol ms) throws Exception {
         final String methodName = ms.getSimpleName().toString();
@@ -202,8 +229,12 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         builder.addModifiers(Modifier.FINAL, Modifier.PUBLIC);
 
-        // extract annotations of return type / method. copy all, except @Yield
-        final Attribute.Compound yield = mimicMethodAnnotations(builder, ms);
+        // extract annotations of return type / method. copy all, except @Yield & @AfterCall
+        mimicMethodAnnotations(builder, ms);
+
+        // extract our own annotations
+        final Attribute.Compound yield = findYieldMethodAnnotation(ms);
+        final Attribute.Compound after = findAfterMethodAnnotation(ms);
 
         // extract return type
         final Type returnType = ms.getReturnType();
@@ -230,7 +261,18 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         builder.endControlFlow();
 
         // generate return
-        builder.addStatement((hasReturn ? "return " : "") + "this.inner.$N($L)", methodName, arguments);
+        if (null == after) {
+            builder.addStatement((hasReturn ? "return " : "") + "this.inner.$N($L)", methodName, arguments);
+        } else {
+            afterCalls.set(true);
+
+            if (hasReturn) {
+                builder.addStatement("return $L($S, this.inner.$N($L))", AFTERCALL, methodName, methodName, arguments);
+            } else {
+                builder.addStatement("this.inner.$N($L)", methodName, arguments);
+                builder.addStatement("$L($S, null)", AFTERCALL, methodName);
+            }
+        }
 
         return builder;
     }
@@ -310,17 +352,12 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     //region Helpers
 
     /** Mimic annotations of the method, but exclude @Yield annotation during processing. */
-    @Nullable
-    public static Attribute.Compound mimicMethodAnnotations(@NonNull final MethodSpec.Builder builder,
-                                                            @NonNull final Symbol.MethodSymbol ms) throws Exception {
-        Attribute.Compound yield = null;
-
+    public static void mimicMethodAnnotations(@NonNull final MethodSpec.Builder builder,
+                                              @NonNull final Symbol.MethodSymbol ms) throws Exception {
         if (ms.hasAnnotations()) {
             for (final Attribute.Compound am : ms.getAnnotationMirrors()) {
-                if (extractClass(am) == AutoProxy.Yield.class) {
-                    yield = am;
-                    continue;
-                }
+                if (extractClass(am) == AutoProxy.Yield.class) continue;
+                if (extractClass(am) == AutoProxy.AfterCall.class) continue;
 
                 final AnnotationSpec.Builder builderAnnotation = mimicAnnotation(am);
                 if (null != builderAnnotation) {
@@ -328,8 +365,28 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
                 }
             }
         }
+    }
 
-        return yield;
+    @Nullable
+    public static Attribute.Compound findAfterMethodAnnotation(@NonNull final Symbol.MethodSymbol ms) throws Exception {
+        if (ms.hasAnnotations()) {
+            for (final Attribute.Compound am : ms.getAnnotationMirrors()) {
+                if (extractClass(am) == AutoProxy.AfterCall.class) return am;
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    public static Attribute.Compound findYieldMethodAnnotation(@NonNull final Symbol.MethodSymbol ms) throws Exception {
+        if (ms.hasAnnotations()) {
+            for (final Attribute.Compound am : ms.getAnnotationMirrors()) {
+                if (extractClass(am) == AutoProxy.Yield.class) return am;
+            }
+        }
+
+        return null;
     }
 
     /** Compose exceptions throwing signature. */
