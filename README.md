@@ -306,3 +306,11 @@ git submodule foreach 'git reset --hard'
 # including nested submodules
 git submodule foreach --recursive 'git reset --hard'
 ```
+
+## How to debug?
+
+1. Go to terminal and execute `./gradlew --stop`
+2. Enable/UnComment in gradle.properties line `#org.gradle.debug=true`
+3. Switch IDE to run configuration `Debug Annotation Processor`
+4. Run IDE configuration
+5. Open terminal and execute `./gradlew clean assembleDebug`

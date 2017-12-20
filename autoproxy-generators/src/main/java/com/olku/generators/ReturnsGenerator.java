@@ -30,7 +30,7 @@ public class ReturnsGenerator implements ReturnsPoet {
 
         // throw exception
         if (Returns.THROWS.equals(type)) {
-            builder.addStatement("throw new $T($S)", UnsupportedOperationException.class, "cannot resolve return type.");
+            builder.addStatement("throw new $T($S)", UnsupportedOperationException.class, "cannot resolve return value.");
             return true;
         }
 
