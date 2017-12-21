@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/autoproxy-annotations/autoproxy-annotations.iml" filepath="$PROJECT_DIR$/autoproxy-annotations/autoproxy-annotations.iml" />
+      <module fileurl="file://$PROJECT_DIR$/autoproxy-generators/autoproxy-generators.iml" filepath="$PROJECT_DIR$/autoproxy-generators/autoproxy-generators.iml" />
+      <module fileurl="file://$PROJECT_DIR$/autoproxy-processor/autoproxy-processor.iml" filepath="$PROJECT_DIR$/autoproxy-processor/autoproxy-processor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/autoproxy-rx-annotations/autoproxy-rx-annotations.iml" filepath="$PROJECT_DIR$/autoproxy-rx-annotations/autoproxy-rx-annotations.iml" />
+      <module fileurl="file://$PROJECT_DIR$/autoproxy-rx-generators/autoproxy-rx-generators.iml" filepath="$PROJECT_DIR$/autoproxy-rx-generators/autoproxy-rx-generators.iml" />
+      <module fileurl="file://$PROJECT_DIR$/github.autoproxy.iml" filepath="$PROJECT_DIR$/github.autoproxy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sample/sample.iml" filepath="$PROJECT_DIR$/sample/sample.iml" />
+    </modules>
+  </component>
+</project>

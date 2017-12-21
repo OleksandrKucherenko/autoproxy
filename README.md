@@ -43,6 +43,76 @@ Library gives a little bigger freedom if you think for a second about this:
 * auto-generated Proxy class is simple and does not have any performance impacts.
 * used in library approach allows custom generators of code/results. Unknown types is super easy to support.
 
+# Concepts
+
+## Predicate
+
+Intercept call before the inner instance call. If returns TRUE, than allowed inner instance call.
+On FALSE developer should decide what to do. Default behavior: throw exception.
+
+```java
+  public final Observable<Boolean> dummyCall(final List<String> generic) {
+    if (!predicate( "dummyCall", generic )) {
+      // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="empty")
+      return Observable.empty();
+    }
+    return this.inner.dummyCall(generic);
+  }
+```
+
+## AfterCall
+
+From time to time exists situations when we need to intercept and modify results of inner call.
+In that case library provides `@AutoProxy.AfterCall` annotation.
+
+Declaration:
+```java
+/** Abstract class. */
+@AutoValue
+public abstract class ParkingArea {
+
+    @AutoValue.Builder
+    @AutoProxy
+    public static abstract class Builder {
+
+        @AutoProxy.AfterCall
+        public abstract ParkingArea build();
+
+        @AutoProxy.AfterCall
+        @NonNull
+        public abstract Builder id(final long id);
+    }
+}
+```
+
+Generated class will contains after that two methods:
+
+```java
+public abstract class Proxy_ParkingArea$Builder extends ParkingArea.Builder {
+  protected final ParkingArea.Builder inner;
+
+  public abstract boolean predicate(final String methodName, final Object... args);
+
+  public abstract <R> R afterCall(final String methodName, final R result);
+
+  /* ... other methods ... */
+}
+```
+
+Change of internal proxy pattern:
+
+```java
+  public final ParkingArea build() {
+    if (!predicate( "build" )) {
+      throw new UnsupportedOperationException("cannot resolve return type.");
+    }
+
+    return afterCall("build", this.inner.build());
+  }
+
+```
+
+
 # Usage
 
 You can use it as a submodule or as compiled libs.
@@ -236,3 +306,11 @@ git submodule foreach 'git reset --hard'
 # including nested submodules
 git submodule foreach --recursive 'git reset --hard'
 ```
+
+## How to debug?
+
+1. Go to terminal and execute `./gradlew --stop`
+2. Enable/UnComment in gradle.properties line `#org.gradle.debug=true`
+3. Switch IDE to run configuration `Debug Annotation Processor`
+4. Run IDE configuration
+5. Open terminal and execute `./gradlew clean assembleDebug`
