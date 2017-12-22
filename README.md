@@ -1,5 +1,9 @@
 # AutoProxy
 
+[![Build Status](https://travis-ci.org/OleksandrKucherenko/autoproxy.svg?branch=master)](https://travis-ci.org/OleksandrKucherenko/autoproxy)
+[ ![Download](https://api.bintray.com/packages/kucherenko-alex/android/com.olku%3Aautoproxy/images/download.svg) ](https://bintray.com/kucherenko-alex/android/com.olku%3Aautoproxy/_latestVersion)
+
+
 Annotation Processing Library.
 
 Generates proxy class on top of interface/abstract class, that allows to intercept calls.
