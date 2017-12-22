@@ -143,13 +143,15 @@ if (!fc.exists()) {
     fc.append("ext.gpg_password = '<secret>'" + NL)
     fc.append("ext.bintray_apikey = '<secret>'" + NL)
     fc.append("ext.bintray_dryrun = true" + NL)
-
-    fc.append("ext.bintray_user = 'kucherenko-alex'" + NL)
+    fc.append("throw new Exception('Change Properties Template and delete this line')" + NL)
+    fc.append(NL)
     fc.append("ext.bintray_fullname = 'Oleksandr Kucherenko'" + NL)
     fc.append("ext.bintray_email = 'kucherenko.alex@gmail.com'" + NL)
+    fc.append("ext.bintray_user = 'kucherenko-alex'" + NL)
     fc.append("ext.bintray_repo = 'android'" + NL)
     fc.append("ext.bintray_group = 'com.olku'" + NL)
-
+    fc.append("ext.bintray_name = 'autoproxy'" + NL)
+    fc.append(NL)
     fc.append("ext.git_url = 'https://github.com/OleksandrKucherenko/autoproxy'" + NL)
 }
 
