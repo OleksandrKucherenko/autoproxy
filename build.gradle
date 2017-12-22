@@ -24,6 +24,13 @@ buildscript {
                 classpath "org.jacoco:org.jacoco.report:${jacocoVersion}"
             }
             //endregion
+
+            /* PUBLISHING, https://inthecheesefactory.com/blog/how-to-upload-library-to-jcenter-maven-central-as-dependency/en */
+
+            /* https://github.com/bintray/gradle-bintray-plugin */
+            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+            /* https://github.com/dcendents/android-maven-gradle-plugin */
+            classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         }
     }
 }
@@ -55,6 +62,19 @@ allprojects {
         hamcrestVersion = project.HAMCREST_VERSION
         assertjVersion = project.ASSERTJ_VERSION
         mockitoVersion = project.MOCKITO_VERSION
+
+        /* Load version override properties from file. File is a result of 'gradle/version-up.sh' script. */
+        def filePath = "${project.projectDir}/version.properties"
+        if (new File(filePath).exists()) {
+            Properties properties = new Properties()
+            properties.load(new FileInputStream(filePath))
+
+            logger.info("  Version Info override for module '${project.name}' applied.")
+            properties.each { p ->
+                set(p.key, p.value)
+                logger.info("    '${p.key}' = '${p.value}'")
+            }
+        }
     }
 
     /* Update Java compiler options for making visible all warnings. JAVA 8! */
@@ -113,3 +133,25 @@ task clean(type: Delete) {
 }
 
 println "Is submodule: ${rootProject.buildDir != project.buildDir}"
+
+/** Auto-compose credential file for 'first-run' project. */
+def fc = project.file('credentials.gradle')
+if (!fc.exists()) {
+    def NL = "\n"
+    fc.createNewFile()
+
+    fc.append("ext.gpg_password = '<secret>'" + NL)
+    fc.append("ext.bintray_apikey = '<secret>'" + NL)
+    fc.append("ext.bintray_dryrun = true" + NL)
+
+    fc.append("ext.bintray_user = 'kucherenko-alex'" + NL)
+    fc.append("ext.bintray_fullname = 'Oleksandr Kucherenko'" + NL)
+    fc.append("ext.bintray_email = 'kucherenko.alex@gmail.com'" + NL)
+    fc.append("ext.bintray_repo = 'android'" + NL)
+    fc.append("ext.bintray_group = 'com.olku'" + NL)
+
+    fc.append("ext.git_url = 'https://github.com/OleksandrKucherenko/autoproxy'" + NL)
+}
+
+/** Load root credentials */
+apply from: file('credentials.gradle')

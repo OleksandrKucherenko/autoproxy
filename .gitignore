@@ -57,3 +57,8 @@ freeline.py
 freeline/
 freeline_project_description.json
 
+# Private Credentials
+credentials.gradle
+
+# Version definition
+version.properties

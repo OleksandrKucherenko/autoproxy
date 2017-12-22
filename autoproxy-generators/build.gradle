@@ -23,3 +23,40 @@ dependencies {
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
+
+project.file('credentials.gradle').delete()
+def fc = project.file('credentials.gradle')
+if (!fc.exists()) {
+    def NL = "\n"
+    fc.createNewFile()
+
+    fc.append("ext.publishedGroupId = '${bintray_group}'" + NL)
+    fc.append("ext.artifact = '${project.name}'" + NL)
+
+    fc.append("ext.libraryName = '${project.name}'" + NL)
+    fc.append("ext.libraryDescription = 'AutoProxy default code generators. Used for generic/primtive data types.'" + NL)
+    fc.append("ext.libraryVersion = '${project.parent.properties.get('snapshot.version')}'" + NL)
+
+    fc.append("ext.licenseName = 'The MIT License (MIT)'" + NL)
+    fc.append("ext.licenseUrl = 'http://opensource.org/licenses/MIT'" + NL)
+    fc.append("ext.allLicenses = ['MIT']" + NL)
+
+    fc.append("ext.developerId = '${bintray_user}'" + NL)
+    fc.append("ext.developerName = '${bintray_fullname}'" + NL)
+    fc.append("ext.developerEmail = '${bintray_email}'" + NL)
+
+    fc.append("ext.gitUrl = '${git_url}'" + NL)
+    fc.append("ext.siteUrl = '${git_url}'" + NL)
+
+    fc.append("ext.bintrayRepo = '${bintray_repo}'" + NL)
+    fc.append("ext.bintrayName = '${bintray_group}:${project.name}'" + NL)
+}
+
+apply from: project.file('credentials.gradle')
+/* https://github.com/nuuneoi/JCenter */
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+
+bintray {
+    dryRun = bintray_dryrun
+}
