@@ -117,7 +117,27 @@ Change of internal proxy pattern:
 
 You can use it as a submodule or as compiled libs.
 
-## Step #1 : attach as a submodule
+## Step #1 : configure dependency
+
+```gradle
+repositories {
+    maven {
+        url  "https://dl.bintray.com/kucherenko-alex/android"
+    }
+}
+
+dependencies{
+    /* AutoProxy generator */
+    compileOnly 'com.olku:autoproxy-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx-generators:+'
+
+    annotationProcessor 'com.olku:autoproxy-rx-generators:+'
+    annotationProcessor 'com.olku:autoproxy-processor:+'
+}
+```
+
+## Step #1.1 : OR attach as a submodule
 
 attach repository as a submodule:
 
@@ -132,7 +152,7 @@ git submodule add https://github.com/OleksandrKucherenko/autoproxy.git modules/a
 git submodule update --init --recursive
 ```
 
-## Step #2: include submodule into project
+## Step #1.2: include submodule into project
 
 `app/build.gradle`:
 
