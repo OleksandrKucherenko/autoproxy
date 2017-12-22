@@ -1,0 +1,85 @@
+language: android
+
+sudo: false
+
+jdk:
+  - oraclejdk8
+
+env:
+  global:
+    - GRADLE_USER_HOME=$HOME/.gradle
+    # expected secured: $GITHUB_OAUTH_TOKEN
+
+# http://docs.travis-ci.com/user/caching/
+cache:
+  gradlew: true
+  gradle: true
+  directories:
+    - $HOME/.gradle
+    - $HOME/.m2
+
+# ask travis-ci to download all revisions, we use revisions for version defining
+git:
+  depth: 10000
+
+
+# list of available components https://github.com/travis-ci/travis-ci/issues/2301
+android:
+  components:
+    - platform-tools
+    - platform-tools-preview
+    - build-tools-27.0.2
+    - extra-android-support
+    - extra-android-m2repository
+    - extra-google-m2repository
+    - android-26
+  licenses:
+    - '.+'
+
+before_install:
+  # make scripts executable for linux CI
+  - chmod +x gradlew
+  # version script
+  - chmod +x gradle/version-up.sh
+
+install:
+  - true
+
+script:
+  - gradle/version-up.sh
+  - ./gradlew assembleDebug --console=plain
+
+# resolve wildcard to real name before deploy
+# http://stackoverflow.com/questions/25929225/how-to-deploy-to-github-with-file-pattern-on-travis
+before_deploy:
+  - export LIB_FILE1=$(ls autoproxy-annotations/build/libs/autoproxy-*.jar)
+  - export LIB_FILE2=$(ls autoproxy-generators/build/libs/autoproxy-*.jar)
+  - export LIB_FILE3=$(ls autoproxy-processor/build/libs/autoproxy-*.jar)
+  - export LIB_FILE4=$(ls autoproxy-rx-annotations/build/libs/autoproxy-*.jar)
+  - export LIB_FILE5=$(ls autoproxy-rx-generators/build/libs/autoproxy-*.jar)
+  - echo "release file(s) $LIB_FILE1 $LIB_FILE2 $LIB_FILE3 $LIB_FILE4 $LIB_FILE5"
+
+# https://github.com/Bartvds/demo-travis-gh-pages
+# http://docs.travis-ci.com/user/deployment/releases/
+deploy:
+  provider: releases
+  api_key: $GITHUB_OAUTH_TOKEN
+  file:
+    - "${LIB_FILE1}"
+    - "${LIB_FILE2}"
+    - "${LIB_FILE3}"
+    - "${LIB_FILE4}"
+    - "${LIB_FILE5}"
+  skip_cleanup: true
+  on:
+    tags: true
+    all_branches: true
+
+notifications:
+  email: false
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/f9d875b20132dda64fbe
+    on_success: always  # options: [always|never|change] default: always
+    on_failure: never   # options: [always|never|change] default: always
+    on_start: never     # options: [always|never|change] default: always
