@@ -143,7 +143,7 @@ if (!fc.exists()) {
     fc.append("ext.gpg_password = '<secret>'" + NL)
     fc.append("ext.bintray_apikey = '<secret>'" + NL)
     fc.append("ext.bintray_dryrun = true" + NL)
-    fc.append("throw new Exception('Change Properties Template and delete this line')" + NL)
+//    fc.append("throw new Exception('Change Properties Template and delete this line')" + NL)
     fc.append(NL)
     fc.append("ext.bintray_fullname = 'Oleksandr Kucherenko'" + NL)
     fc.append("ext.bintray_email = 'kucherenko.alex@gmail.com'" + NL)
