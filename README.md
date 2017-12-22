@@ -10,31 +10,7 @@ Generates proxy class on top of interface/abstract class, that allows to interce
 
 Also known as a design pattern: proxy, delegate, interceptor.
 
-```
-Call --> Proxy
-            |
-            +----> predicate() ---true-------> Inner Call
-                       |
-                       +---------false-------> Yeild Result (Default)
-```
-
-Or:
-
-```
-+------------------+
-| Proxy            |
-|                  |
-|  +----------+    |
-|  | Inner    |    |
-|  |       ^  |    |
-|  +-------|--+    |
-|          |       |
-|  predicate(...)  |
-|          |       |
-+----------|-------+
-           |
-         Call
-```
+[![Diagram](https://i.imgur.com/vvgUtw7h.png)](https://imgur.com/vvgUtw7)
 
 # Why should I use it?
 
