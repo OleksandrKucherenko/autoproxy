@@ -64,5 +64,5 @@ dependencies {
     annotationProcessor "com.google.auto.value:auto-value:1.5.2"
 
     /* Unit test */
-    testCompile "junit:junit:${junitVersion}"
+    testImplementation "junit:junit:${junitVersion}"
 }
