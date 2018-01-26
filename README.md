@@ -12,6 +12,10 @@ Also known as a design pattern: proxy, delegate, interceptor.
 
 [![Diagram](https://i.imgur.com/vvgUtw7h.png)](https://imgur.com/vvgUtw7)
 
+UML PROXY PATTERN:
+
+[![Proxy Pattern](https://i.imgur.com/EYDGCB1h.png)](https://imgur.com/EYDGCB1)
+
 # Why should I use it?
 
 Library solves common Mvp View problem: call of view from presenter when
