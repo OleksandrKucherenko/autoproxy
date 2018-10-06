@@ -4,12 +4,15 @@ buildscript {
         /* Test Driven Development */
         useTdd = Boolean.parseBoolean("${project.USE_TDD}")
         useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
+        /* Versions */
         jacocoVersion = project.JACOCO_VERSION
+        kotlinVersion = project.KOTLIN_VERSION
+        jfrogVersion = project.JFROG_PLUGIN
+        dcendVersion = project.DCENDENTS_PLUGIN
     }
     repositories {
+        google()
         jcenter()
-        /* Google beta/alpha releases */
-        maven { url 'https://maven.google.com' }
     }
     dependencies {
         /* In case of submodule usage, do not try to apply own plugin classpath, root project is responsible for that. */
@@ -28,18 +31,19 @@ buildscript {
             /* PUBLISHING, https://inthecheesefactory.com/blog/how-to-upload-library-to-jcenter-maven-central-as-dependency/en */
 
             /* https://github.com/bintray/gradle-bintray-plugin */
-            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+            classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${jfrogVersion}"
             /* https://github.com/dcendents/android-maven-gradle-plugin */
-            classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+            classpath "com.github.dcendents:android-maven-gradle-plugin:${dcendVersion}"
+            /* Kotlin */
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
         }
     }
 }
 
 allprojects {
     repositories {
+        google()
         jcenter()
-        /* Google beta/alpha releases */
-        maven { url 'https://maven.google.com' }
     }
 
     /* PUBLISH GLOBAL VARIABLES FOR ALL SUB-PROJECTS */
@@ -51,7 +55,7 @@ allprojects {
         androidBuildTools = project.BUILD_TOOLS
 
         /* 3rd party libraries */
-        supportVersion = project.ANDROID_SUPPORT_VERSION
+        supportVersion = project.ANDROID_X_VERSION
 
         /* Test Driven Development */
         useTdd = Boolean.parseBoolean("${project.USE_TDD}")
@@ -62,6 +66,10 @@ allprojects {
         hamcrestVersion = project.HAMCREST_VERSION
         assertjVersion = project.ASSERTJ_VERSION
         mockitoVersion = project.MOCKITO_VERSION
+
+        /* Kotlin Support */
+        kotlinVersion = project.KOTLIN_VERSION
+        androidKTXVersion = project.ANDROID_KTX_VERSION
 
         /* Load version override properties from file. File is a result of 'gradle/version-up.sh' script. */
         def filePath = "${project.projectDir}/version.properties"
@@ -92,12 +100,10 @@ allprojects {
             compilerArgs << "-Xlint:all"            // Turn on all warnings
             compilerArgs << "-Xlint:-options"       // Turn off "missing" bootclasspath warning
             compilerArgs << "-Xlint:-path"          // Turn off warning - annotation processing
-            compilerArgs << "-Xlint:-processing"
-            // Turn off warning about not claiming annotations
+            compilerArgs << "-Xlint:-processing"    // Turn off warning about not claiming annotations
             compilerArgs << "-Xlint:-unchecked"     // Turn off warning unchecked cast used
             compilerArgs << "-Xlint:-rawtypes"      // Turn off warning for raw types
-            compilerArgs << "-Xlint:-classfile"
-            // Turn off warning classfile version 52.0 vs 51.0
+            compilerArgs << "-Xlint:-classfile"     // Turn off warning classfile version 52.0 vs 51.0
             compilerArgs << "-Xlint:-sunapi"        // Turn off SUN Api usage warnings
             compilerArgs << "-XDenableSunApiLintControl"
             compilerArgs << "-Werror"               // Turn warnings into errors

@@ -1,10 +1,10 @@
 package com.olku.generators;
 
-import android.support.annotation.NonNull;
-
 import com.olku.annotations.Returns;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
+
+import androidx.annotation.NonNull;
 
 /** Compose return types for boolean. */
 public class ReturnsGenerator implements ReturnsPoet {

@@ -1,8 +1,8 @@
 package com.olku.annotations;
 
-import android.support.annotation.StringDef;
-
 import java.lang.annotation.Retention;
+
+import androidx.annotation.StringDef;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 

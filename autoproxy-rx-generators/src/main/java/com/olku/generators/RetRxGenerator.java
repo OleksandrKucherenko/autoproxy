@@ -1,10 +1,10 @@
 package com.olku.generators;
 
-import android.support.annotation.NonNull;
-
 import com.olku.annotations.RetRx;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
+
+import androidx.annotation.NonNull;
 
 /** RxJava return values generator. */
 public class RetRxGenerator implements ReturnsPoet {

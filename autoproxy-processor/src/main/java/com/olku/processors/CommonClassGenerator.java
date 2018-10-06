@@ -1,7 +1,5 @@
 package com.olku.processors;
 
-import android.support.annotation.*;
-
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
 import com.olku.annotations.RetBool;
@@ -41,6 +39,8 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import sun.reflect.annotation.AnnotationParser;
 
 import static javax.tools.Diagnostic.Kind.NOTE;

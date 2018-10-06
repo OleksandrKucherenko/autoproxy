@@ -14,7 +14,7 @@ dependencies {
     implementation project(':autoproxy-annotations')
     implementation project(':autoproxy-rx-annotations')
     implementation project(':autoproxy-generators')
-    implementation "com.android.support:support-annotations:${supportVersion}"
+    implementation "androidx.annotation:annotation:${supportVersion}"
 
     /* CODE GENERATION */
     implementation 'com.google.auto.service:auto-service:1.0-rc3'

@@ -4,7 +4,7 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 dependencies {
-    implementation "com.android.support:support-annotations:${supportVersion}"
+    implementation "androidx.annotation:annotation:${supportVersion}"
 }
 
 project.file('credentials.gradle').delete()

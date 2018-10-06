@@ -1,7 +1,6 @@
 package com.olku.autoproxy.sample;
 
 import android.net.Uri;
-import android.support.annotation.*;
 
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.RetBool;
@@ -13,6 +12,7 @@ import com.olku.generators.RetRxGenerator;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import rx.Observable;
 
 /** MVP view interface. */
@@ -27,7 +27,7 @@ public interface MvpView {
     Observable<Boolean> dummyCall(final List<String> generic);
 
     /** Throws exception on False result from predicate. */
-    @AutoProxy.Yield(Returns.THROWS)
+    @AutoProxy.Yield(/* Returns.THROWS */)
     Observable<Boolean> dummyCall(final String message, final List<String> args);
 
     /** Returns Observable.error(...) on False result from predicate. */

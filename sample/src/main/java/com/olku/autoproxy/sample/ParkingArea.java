@@ -1,13 +1,13 @@
 package com.olku.autoproxy.sample;
 
-import android.support.annotation.*;
-
 import com.google.auto.value.AutoValue;
 import com.olku.annotations.AutoProxy;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import androidx.annotation.NonNull;
 
 /** Abstract class. */
 @AutoValue

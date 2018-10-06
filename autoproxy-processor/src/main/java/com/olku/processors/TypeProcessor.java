@@ -1,7 +1,5 @@
 package com.olku.processors;
 
-import android.support.annotation.*;
-
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
 import com.sun.tools.javac.code.Attribute;
@@ -28,6 +26,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import sun.reflect.annotation.AnnotationParser;
 
 import static javax.tools.Diagnostic.Kind.NOTE;

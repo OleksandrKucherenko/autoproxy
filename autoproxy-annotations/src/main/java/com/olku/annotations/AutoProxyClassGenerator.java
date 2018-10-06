@@ -1,8 +1,8 @@
 package com.olku.annotations;
 
-import android.support.annotation.NonNull;
-
 import javax.annotation.processing.Filer;
+
+import androidx.annotation.NonNull;
 
 /** interface that all custom class generators should support. */
 public interface AutoProxyClassGenerator {

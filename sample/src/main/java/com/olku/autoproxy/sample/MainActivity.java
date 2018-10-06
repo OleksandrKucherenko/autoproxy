@@ -2,11 +2,11 @@ package com.olku.autoproxy.sample;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 
 import java.util.List;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import rx.Observable;
 
 public class MainActivity extends AppCompatActivity implements MvpView {

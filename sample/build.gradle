@@ -1,4 +1,7 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 /** Allow to override min sdk by provided compiler properties. */
 def minSdk = {
@@ -7,7 +10,6 @@ def minSdk = {
 
     project.hasProperty(propertyName) ? project.property(propertyName) : defaultSdk
 }
-
 
 android {
     compileSdkVersion androidCompileSdk
@@ -22,7 +24,10 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        /* fix compatibility issue for 2.4.0-alpha4 (and higher) plugin. */
+        javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
     }
 
     buildTypes {
@@ -42,26 +47,34 @@ android {
 }
 
 dependencies {
-    implementation "com.android.support:support-annotations:${supportVersion}"
-    implementation "com.android.support:appcompat-v7:${supportVersion}"
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation "androidx.annotation:annotation:${supportVersion}"
+    implementation "androidx.appcompat:appcompat:${supportVersion}"
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
     /* RxJava - https://github.com/ReactiveX/RxAndroid */
     implementation "io.reactivex:rxandroid:1.2.1"
-    implementation "io.reactivex:rxjava:1.3.4"
+    implementation "io.reactivex:rxjava:1.3.8"
 
     /* AutoProxy generator */
     compileOnly project(':autoproxy-annotations')
     compileOnly project(':autoproxy-rx-annotations')
     compileOnly project(':autoproxy-rx-generators')
 
-    annotationProcessor project(':autoproxy-rx-generators')
-    annotationProcessor project(':autoproxy-processor')
+    kapt project(':autoproxy-rx-generators')
+    kapt project(':autoproxy-processor')
 
     /* AutoValue, https://github.com/google/auto */
     compileOnly "org.glassfish:javax.annotation:10.0-b28"
     compileOnly "com.google.auto.value:auto-value:1.5.2"
-    annotationProcessor "com.google.auto.value:auto-value:1.5.2"
+    kapt "com.google.code.findbugs:jsr305:3.0.2"
+    kapt "com.google.auto.value:auto-value:1.5.2"
+
+    /* Kotlin Support */
+    /* Android KTX https://github.com/android/android-ktx */
+    implementation "androidx.core:core-ktx:${androidKTXVersion}"
+
+    /* Kotlin Standard Library https://kotlinlang.org/api/latest/jvm/stdlib/index.html */
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
 
     /* Unit test */
     testImplementation "junit:junit:${junitVersion}"

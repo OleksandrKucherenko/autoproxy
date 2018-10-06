@@ -1,9 +1,9 @@
 package com.olku.generators;
 
-import android.support.annotation.NonNull;
-
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
+
+import androidx.annotation.NonNull;
 
 /** RxJava return values generator. */
 public class JustRxGenerator implements ReturnsPoet {
