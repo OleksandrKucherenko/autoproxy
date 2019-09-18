@@ -62,3 +62,11 @@ credentials.gradle
 
 # Version definition
 version.properties
+
+# Eclipse files
+.classpath
+.project
+
+# vscode java plugin
+.settings/
+bin/

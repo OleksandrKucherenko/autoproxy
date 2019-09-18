@@ -1,0 +1,216 @@
+version: 2.1
+
+# Recover cache for all jobs
+restore_cache: &restore_cache
+  restore_cache:
+    keys:
+      - dependency-cache-{{ checksum "build.gradle" }}-{{ checksum  "autoproxy-annotations/build.gradle" }}-{{ checksum  "autoproxy-generator/build.gradle" }}-{{ checksum  "autoproxy-processor/build.gradle" }}-{{ checksum  "autoproxy-rx-annotations/build.gradle" }}-{{ checksum  "autoproxy-rx-generators/build.gradle" }}
+      - processor-{{ .Revision }}
+      - annotations-{{ .Revision }}
+      - generators-{{ .Revision }}
+      - rx-annotations-{{ .Revision }}
+      - rx-generators-{{ .Revision }}
+
+jobs:
+  # Download all dependencies
+  dependencies:
+    working_directory: ~/autoproxy
+    docker:
+      - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - *restore_cache
+      - run: # version
+          name: Version Autogenerate
+          command: gradle/version-up.sh
+      - run: # dependencies
+          name: Download Dependencies
+          command: ./gradlew androidDependencies
+      - save_cache: # dependencies
+          paths:
+            - ~/.gradle
+          key: dependency-cache-{{ checksum "build.gradle" }}-{{ checksum  "autoproxy-annotations/build.gradle" }}-{{ checksum  "autoproxy-generator/build.gradle" }}-{{ checksum  "autoproxy-processor/build.gradle" }}-{{ checksum  "autoproxy-rx-annotations/build.gradle" }}-{{ checksum  "autoproxy-rx-generators/build.gradle" }}
+          
+  # DEBUG binaries
+  debug:
+    working_directory: ~/autoproxy
+    docker:
+      - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - *restore_cache
+      - run: # version
+          name: Version Autogenerate
+          command: gradle/version-up.sh
+      - run: # build
+          name: Compile Debug Binaries
+          command: ./gradlew assembleDebug
+
+  # RELEASE binaries
+  release:
+    working_directory: ~/autoproxy
+    docker:
+      - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - *restore_cache
+      - run: # version
+          name: Version Autogenerate
+          command: gradle/version-up.sh
+      - run: # build
+          name: Compile Release Binaries
+          command: ./gradlew assemble
+      - store_artifacts: # annotations
+          path: ~/autoproxy-annotations/build/libs
+          destination: libs
+      - store_artifacts: # generator
+          path: ~/autoproxy-generators/build/libs
+          destination: libs
+      - store_artifacts: # processor
+          path: ~/autoproxy-processor/build/libs
+          destination: libs
+      - store_artifacts: # rx-annotations
+          path: ~/autoproxy-rx-annotations/build/libs
+          destination: libs
+      - store_artifacts: # rx-generators
+          path: ~/autoproxy-rx-generators/build/libs
+          destination: libs
+      - save_cache: # annotations
+          paths:
+            - ~/autoproxy-annotations/build
+          key: annotations-{{ .Revision }}    
+      - save_cache: # generator
+          paths:
+            - ~/autoproxy-generators/build
+          key: generators-{{ .Revision }}
+      - save_cache: # processor
+          paths:
+            - ~/autoproxy-processor/build
+          key: processor-{{ .Revision }}    
+      - save_cache: # rx-annotations
+          paths:
+            - ~/autoproxy-rx-annotations/build
+          key: rx-annotations-{{ .Revision }}
+      - save_cache: # rx-generators
+          paths:
+            - ~/autoproxy-rx-generators/build
+          key: rx-generators-{{ .Revision }}
+
+  # Unit Tests
+  test:
+    working_directory: ~/autoproxy
+    docker:
+      - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - *restore_cache
+      - run: # version
+          name: Version Autogenerate
+          command: gradle/version-up.sh
+      - run: # tests
+          name: Run unit tests
+          command: ./gradlew test
+      - run: # collect results
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_test_results:
+          path: app/build/test-results
+      - store_artifacts:
+          path: app/build/reports
+          destination: reports
+      - store_artifacts:
+          path: ~/test-results/junit
+
+  # Lint
+  lint:
+    working_directory: ~/autoproxy
+    docker:
+      - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - *restore_cache
+      - run: # version
+          name: Version Autogenerate
+          command: gradle/version-up.sh
+      - run: # lint
+          name: Run Lint
+          command: ./gradlew lint
+      - store_artifacts:
+          path: app/build/reports
+          destination: reports
+
+  # Deploy
+  deploy:
+    working_directory: ~/autoproxy
+    docker:
+      - image: circleci/android:api-28
+    environment:
+      JVM_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - *restore_cache
+      - run: # version
+          name: Version Autogenerate
+          command: gradle/version-up.sh
+      - run: # lint
+          name: Run Lint
+          command: ./gradlew lint
+
+workflows:
+  version: 2
+  build-test-deploy:
+    triggers:
+      - schedule: # https://crontab.guru/#0_0_*_*_1 - every week at Monday
+          cron: "0 0 * * 1" 
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - dependencies
+      - debug:
+          requires:
+            - dependencies
+      - release:
+          requires:
+            - dependencies
+      - lint:
+          requires:
+            - debug
+      - test:
+          requires:
+            - release
+            - debug
+      - gatekeeper:
+          type: approval
+          requires:
+            - test
+            - lint
+          filters:
+            branches:
+              only:
+                - master
+      - deploy:
+          requires:
+            - gatekeeper
+
+# References:
+#   https://github.com/asksven/BetterBatteryStats/blob/master/circle.yml
+#   https://github.com/santaevpavel/ClipboardTranslator/blob/master/.circleci/config.yml
+#   https://github.com/unhappychoice/DroidFlyer/blob/master/.circleci/config.yml
+#
