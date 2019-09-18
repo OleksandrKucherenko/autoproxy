@@ -138,6 +138,12 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+/** Force full version of gradle instead of binaries only. */
+tasks.wrapper {
+  distributionType = Wrapper.DistributionType.ALL
+}
+
+
 println "Is submodule: ${rootProject.buildDir != project.buildDir}"
 
 /** Auto-compose credential file for 'first-run' project. */
