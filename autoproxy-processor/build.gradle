@@ -15,7 +15,7 @@ dependencies {
     implementation project(':autoproxy-generators')
 
     /* CODE GENERATION */
-    implementation 'com.google.auto.service:auto-service:1.0-rc3'
+    implementation 'com.google.auto.service:auto-service:1.0-rc6'
     implementation 'com.squareup:javapoet:1.11.1'
 
     implementation "androidx.annotation:annotation:${supportVersion}"
