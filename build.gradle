@@ -1,6 +1,7 @@
 buildscript {
     ext {
         gradlePlugin = project.GRADLE_PLUGIN
+        useVersions = Boolean.parseBoolean("${project.USE_VERSIONS}")
         /* Test Driven Development */
         useTdd = Boolean.parseBoolean("${project.USE_TDD}")
         useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
@@ -36,6 +37,13 @@ buildscript {
             classpath "com.github.dcendents:android-maven-gradle-plugin:${dcendVersion}"
             /* Kotlin */
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
+            /* https://github.com/ben-manes/gradle-versions-plugin */
+            //region classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0"
+            if (useVersions) {
+                classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0"
+            }
+            //endregion
+
         }
     }
 }

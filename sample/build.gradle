@@ -3,6 +3,26 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
+/* https://github.com/ben-manes/gradle-versions-plugin */
+//region apply plugin: "com.github.ben-manes.versions"
+if (useVersions) {
+    apply plugin: "com.github.ben-manes.versions"
+
+    dependencyUpdates.resolutionStrategy {
+        componentSelection { rules ->
+            rules.all { selection ->
+                boolean rejected = ['alpha', 'beta', 'rc', 'cr', 'm', 'preview', 'alpha-preview'].any { qualifier ->
+                    selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-]*/
+                }
+                if (rejected) {
+                    selection.reject('Release candidate')
+                }
+            }
+        }
+    }
+}
+//endregion
+
 /** Allow to override min sdk by provided compiler properties. */
 def minSdk = {
     def propertyName = 'com.olku.app.minSdk'
@@ -43,6 +63,10 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
     }
 }
 
