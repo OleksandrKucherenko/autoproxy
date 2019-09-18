@@ -172,14 +172,7 @@ jobs:
 #          
 workflows:
   version: 2
-  quick:
-    triggers:
-      - schedule: # https://crontab.guru/#0_0_*_*_1 - every week at Monday
-          cron: "0 0 * * 1" 
-          filters:
-            branches:
-              only:
-                - master
+  quick_build:
     jobs:
       - dependencies
       - debug:
@@ -188,6 +181,16 @@ workflows:
       - lint:
           requires:
             - debug
+  warmup_cache_weekly: # keep our cache always warm
+    jobs:
+      - dependencies
+    triggers:
+      - schedule: # https://crontab.guru/#0_0_*_*_* - every day
+          cron: "0 0 * * *" 
+          filters:
+            branches:
+              only:
+                - master
   build_test_deploy:
     jobs:
       - dependencies:
