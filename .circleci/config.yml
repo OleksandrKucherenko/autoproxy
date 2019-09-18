@@ -32,7 +32,7 @@ jobs:
           command: bash gradle/version-up.sh
       - run: # dependencies
           name: Download Dependencies
-          command: ./gradlew androidDependencies
+          command: ./gradlew androidDependencies --no-daemon
       - save_cache: # dependencies
           paths:
             - ~/.gradle
