@@ -313,8 +313,16 @@ git submodule foreach --recursive 'git reset --hard'
 
 ## How to debug?
 
+Pre-steps:
+* `gradle/version-up.sh` for composing `version.properties` file with a future version
+* `./gradlew install` to publish version in local maven repository
+
+Debugging: 
+
 1. Go to terminal and execute `./gradlew --stop`
 2. Enable/UnComment in gradle.properties line `#org.gradle.debug=true`
 3. Switch IDE to run configuration `Debug Annotation Processor`
 4. Run IDE configuration
 5. Open terminal and execute `./gradlew clean assembleDebug`
+
+[more details ...](https://stackoverflow.com/questions/8587096/how-do-you-debug-java-annotation-processors-using-intellij)

@@ -143,7 +143,6 @@ tasks.wrapper {
   distributionType = Wrapper.DistributionType.ALL
 }
 
-
 println "Is submodule: ${rootProject.buildDir != project.buildDir}"
 
 /** Auto-compose credential file for 'first-run' project. */

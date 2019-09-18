@@ -65,9 +65,10 @@ dependencies {
 
     /* AutoValue, https://github.com/google/auto */
     compileOnly "org.glassfish:javax.annotation:10.0-b28"
-    compileOnly "com.google.auto.value:auto-value:1.6.6"
+    compileOnly "com.google.auto.value:auto-value-annotations:1.6.6"
+
+    kapt "com.google.auto.value:auto-value:1.6.6"
     kapt "com.google.code.findbugs:jsr305:3.0.2"
-    kapt "com.google.auto.value:auto-value:1.5.2"
 
     /* Kotlin Support */
     /* Android KTX https://github.com/android/android-ktx */
@@ -78,4 +79,16 @@ dependencies {
 
     /* Unit test */
     testImplementation "junit:junit:${junitVersion}"
+}
+
+kapt {
+    correctErrorTypes = true
+    mapDiagnosticLocations = true
+
+    // Compiling with JDK 11+, but kapt doesn't forward source/target versions.
+    javacOptions {
+        option("-source", "8")
+        option("-target", "8")
+    }
+
 }

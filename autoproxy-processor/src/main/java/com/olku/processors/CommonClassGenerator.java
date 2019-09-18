@@ -41,6 +41,7 @@ import javax.lang.model.type.TypeKind;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import sun.reflect.annotation.AnnotationParser;
 
 import static javax.tools.Diagnostic.Kind.NOTE;
@@ -65,7 +66,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     //region Constructor
 
-    /** Main constructor. */
+    /**
+     * Main constructor.
+     *
+     * @param type reference on data type processor.
+     */
     public CommonClassGenerator(@NonNull final TypeProcessor type) {
         this.type = type;
 
@@ -165,7 +170,12 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
-    /** */
+    /**
+     * Create methods for provided class.
+     *
+     * @param classSpec instance of class specification builder
+     * @throws Exception give a change to exceptions in depth to deliver the real cause
+     */
     protected void createMethods(@NonNull final TypeSpec.Builder classSpec) throws Exception {
         // compose methods
         RuntimeException runtimeError = null;
@@ -187,7 +197,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         }
     }
 
-    /** Create predicate method declaration. */
+    /**
+     * Create predicate method declaration.
+     *
+     * @return instance of the method builder.
+     */
     @NonNull
     protected MethodSpec.Builder createPredicate() {
         // TODO: resolve potential name conflict
@@ -205,7 +219,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
-    /** Create afterCall method declaration. */
+    /**
+     * Create afterCall method declaration.
+     *
+     * @return instance of the method builder.
+     */
     @NonNull
     protected MethodSpec.Builder createAfterCall() {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(AFTERCALL);
@@ -277,7 +295,14 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
-    /** Compose default value return if proxy do not allows call to inner instance. */
+    /**
+     * Compose default value return if proxy do not allows call to inner instance.
+     *
+     * @param builder    instance of poet method builder
+     * @param returnType expected return type
+     * @param yield      yield information for default behavior generating
+     * @throws Exception allow exception from depth to be raised on higher level
+     */
     protected void createYieldPart(@NonNull final MethodSpec.Builder builder,
                                    @NonNull final Type returnType,
                                    @Nullable final Attribute.Compound yield) throws Exception {
@@ -351,7 +376,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     //region Helpers
 
-    /** Mimic annotations of the method, but exclude @Yield annotation during processing. */
+    /**
+     * Mimic annotations of the method, but exclude @Yield annotation during processing.
+     *
+     * @param builder instance of poet builder used for composing method
+     * @param ms      reference on instance of a method information
+     * @throws Exception method can fail in depth, allow raising of exception on top
+     */
     public static void mimicMethodAnnotations(@NonNull final MethodSpec.Builder builder,
                                               @NonNull final Symbol.MethodSymbol ms) throws Exception {
         if (ms.hasAnnotations()) {
@@ -389,7 +420,12 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return null;
     }
 
-    /** Compose exceptions throwing signature. */
+    /**
+     * Compose exceptions throwing signature.
+     *
+     * @param builder instance of poet method builder
+     * @param ms      reference on source method information
+     */
     public static void mimicThrows(@NonNull final MethodSpec.Builder builder,
                                    @NonNull final Symbol.MethodSymbol ms) {
         for (final Type typeThrown : ms.getThrownTypes()) {
@@ -397,7 +433,14 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         }
     }
 
-    /** Compose method parameters that mimic original code. */
+    /**
+     * Compose method parameters that mimic original code.
+     *
+     * @param builder reference on poet class instance that used for method composing
+     * @param ms      reference on method signature details, symbols, parameters
+     * @return reference on string builder with enumerated parameters
+     * @throws Exception can fail during mimicing signature of the method
+     */
     @NonNull
     public static StringBuilder mimicParameters(@NonNull final MethodSpec.Builder builder,
                                                 @NonNull final Symbol.MethodSymbol ms) throws Exception {
@@ -437,7 +480,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return arguments;
     }
 
-    /** Compose annotation spec from mirror the original code. */
+    /**
+     * Compose annotation spec from mirror the original code.
+     *
+     * @param am instance of compound attribute that contains class information
+     * @return instance of annotation builder or NULL
+     * @throws Exception can potentially raise exception
+     */
     @Nullable
     public static AnnotationSpec.Builder mimicAnnotation(@NonNull final Attribute.Compound am) throws Exception {
         final Class<?> clazz;
@@ -445,7 +494,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         try {
             clazz = extractClass(am);
             return AnnotationSpec.builder(clazz);
-        } catch (Throwable ignored) {
+        } catch (final Throwable ignored) {
             // Not all annotations can be extracted, annotations marked as @Retention(SOURCE)
             // cannot be extracted by our code
         }
@@ -453,7 +502,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return null;
     }
 
-    /** Extract reflection Class&lt;?&gt; information from compound. */
+    /**
+     * Extract reflection Class&lt;?&gt; information from compound.
+     *
+     * @param am reference on compound attribute that represents class
+     * @return found class reflection information
+     * @throws ClassNotFoundException provided wrong class reference
+     */
     @NonNull
     public static Class<?> extractClass(@NonNull final Attribute.Compound am) throws ClassNotFoundException {
         final TypeElement te = (TypeElement) am.getAnnotationType().asElement();
@@ -461,7 +516,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return extractClass(te);
     }
 
-    /** Extract reflection Class&lt;?&gt; information from type element. */
+    /**
+     * Extract reflection Class&lt;?&gt; information from type element.
+     *
+     * @param te reference on type element
+     * @return found class reflection information
+     * @throws ClassNotFoundException provided wrong class name.
+     */
     @NonNull
     public static Class<?> extractClass(@NonNull final TypeElement te) throws ClassNotFoundException {
         final Name name;
