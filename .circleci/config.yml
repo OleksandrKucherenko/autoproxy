@@ -166,9 +166,12 @@ jobs:
           name: Run Lint
           command: ./gradlew lint
 
+#
+# https://circleci.com/docs/2.0/workflows/
+#          
 workflows:
   version: 2
-  build-test-deploy:
+  quick:
     triggers:
       - schedule: # https://crontab.guru/#0_0_*_*_1 - every week at Monday
           cron: "0 0 * * 1" 
@@ -178,6 +181,46 @@ workflows:
                 - master
     jobs:
       - dependencies
+      - debug:
+          requires:
+            - dependencies
+      - lint:
+          requires:
+            - debug
+  build_test_deploy:
+    jobs:
+      - dependencies:
+          filters:
+            branches:
+              only:
+                - master
+      - debug:
+          requires:
+            - dependencies
+      - release:
+          requires:
+            - dependencies
+      - lint:
+          requires:
+            - debug
+      - test:
+          requires:
+            - release
+            - debug
+      - gatekeeper:
+          type: approval
+          requires:
+            - test
+            - lint
+      - deploy:
+          requires:
+            - gatekeeper
+  tag_build_test_deploy:
+    jobs:
+      - dependencies:
+          filters:
+            tags: # 1.0 ... 1.0.1.1
+              only: /^[0-9]+\.[0-9]+.*/
       - debug:
           requires:
             - dependencies
