@@ -149,7 +149,7 @@ jobs:
           name: Run Lint
           command: ./gradlew lint
       - store_artifacts:
-          path: app/build/reports
+          path: sample/build/reports
           destination: reports
 
   # Deploy
