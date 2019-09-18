@@ -13,6 +13,12 @@ restore_cache: &restore_cache
       # fallback to using the latest cache if no exact match is found
       - dependency-cache-
 
+filters: &version_filters
+  tags: # 1.0 ... 1.0.1.1
+    only: /^[0-9]+(\.[0-9]+).*/
+  branches:
+    ignore: /.*/
+
 environment:
   # Customize the JVM maximum heap limit
   JVM_OPTS: -Xmx3200m
@@ -22,7 +28,7 @@ jobs:
   # Download all dependencies
   dependencies:
     working_directory: ~/autoproxy
-    docker:
+    docker: # https://circleci.com/docs/2.0/circleci-images/#android
       - image: circleci/android:api-28
     steps:
       - checkout
@@ -127,9 +133,9 @@ jobs:
       - store_test_results:
           path: ~/test-results
       - store_test_results:
-          path: app/build/test-results
+          path: sample/build/test-results
       - store_artifacts:
-          path: app/build/reports
+          path: sample/build/reports
           destination: reports
       - store_artifacts:
           path: ~/test-results/junit
@@ -222,34 +228,34 @@ workflows:
   tag_build_test_deploy:
     jobs:
       - dependencies:
-          filters:
-            tags: # 1.0 ... 1.0.1.1
-              only: /^[0-9]+\.[0-9]+.*/
+          filters: *version_filters
       - debug:
           requires:
             - dependencies
+          filters: *version_filters
       - release:
           requires:
             - dependencies
+          filters: *version_filters
       - lint:
           requires:
             - debug
+          filters: *version_filters
       - test:
           requires:
             - release
             - debug
+          filters: *version_filters
       - gatekeeper:
           type: approval
           requires:
             - test
             - lint
-          filters:
-            branches:
-              only:
-                - master
+          filters: *version_filters
       - deploy:
           requires:
             - gatekeeper
+          filters: *version_filters
 
 # References:
 #   https://github.com/asksven/BetterBatteryStats/blob/master/circle.yml
