@@ -29,7 +29,7 @@ jobs:
       - *restore_cache
       - run: # version
           name: Version Autogenerate
-          command: gradle/version-up.sh
+          command: bash gradle/version-up.sh
       - run: # dependencies
           name: Download Dependencies
           command: ./gradlew androidDependencies
@@ -48,7 +48,7 @@ jobs:
       - *restore_cache
       - run: # version
           name: Version Autogenerate
-          command: gradle/version-up.sh
+          command: bash gradle/version-up.sh
       - run: # build
           name: Compile Debug Binaries
           command: ./gradlew assembleDebug
@@ -63,7 +63,7 @@ jobs:
       - *restore_cache
       - run: # version
           name: Version Autogenerate
-          command: gradle/version-up.sh
+          command: bash gradle/version-up.sh
       - run: # build
           name: Compile Release Binaries
           command: ./gradlew assemble
@@ -104,6 +104,7 @@ jobs:
           key: rx-generators-{{ .Revision }}
 
   # Unit Tests
+  # https://circleci.com/docs/2.0/configuration-reference/#store_test_results
   test:
     working_directory: ~/autoproxy
     docker:
@@ -113,7 +114,7 @@ jobs:
       - *restore_cache
       - run: # version
           name: Version Autogenerate
-          command: gradle/version-up.sh
+          command: bash gradle/version-up.sh
       - run: # tests
           name: Run unit tests
           command: ./gradlew test
@@ -143,7 +144,7 @@ jobs:
       - *restore_cache
       - run: # version
           name: Version Autogenerate
-          command: gradle/version-up.sh
+          command: bash gradle/version-up.sh
       - run: # lint
           name: Run Lint
           command: ./gradlew lint
@@ -161,7 +162,7 @@ jobs:
       - *restore_cache
       - run: # version
           name: Version Autogenerate
-          command: gradle/version-up.sh
+          command: bash gradle/version-up.sh
       - run: # lint
           name: Run Lint
           command: ./gradlew lint
