@@ -4,7 +4,7 @@ version: 2.1
 restore_cache: &restore_cache
   restore_cache:
     keys:
-      - dependency-cache-{{ checksum "build.gradle" }}-{{ checksum  "autoproxy-annotations/build.gradle" }}-{{ checksum  "autoproxy-generator/build.gradle" }}-{{ checksum  "autoproxy-processor/build.gradle" }}-{{ checksum  "autoproxy-rx-annotations/build.gradle" }}-{{ checksum  "autoproxy-rx-generators/build.gradle" }}
+      - dependency-cache-{{ checksum "build.gradle" }}-{{ checksum  "autoproxy-annotations/build.gradle" }}-{{ checksum  "autoproxy-generators/build.gradle" }}-{{ checksum  "autoproxy-processor/build.gradle" }}-{{ checksum  "autoproxy-rx-annotations/build.gradle" }}-{{ checksum  "autoproxy-rx-generators/build.gradle" }}
       - processor-{{ .Revision }}
       - annotations-{{ .Revision }}
       - generators-{{ .Revision }}
@@ -36,7 +36,7 @@ jobs:
       - save_cache: # dependencies
           paths:
             - ~/.gradle
-          key: dependency-cache-{{ checksum "build.gradle" }}-{{ checksum  "autoproxy-annotations/build.gradle" }}-{{ checksum  "autoproxy-generator/build.gradle" }}-{{ checksum  "autoproxy-processor/build.gradle" }}-{{ checksum  "autoproxy-rx-annotations/build.gradle" }}-{{ checksum  "autoproxy-rx-generators/build.gradle" }}
+          key: dependency-cache-{{ checksum "build.gradle" }}-{{ checksum  "autoproxy-annotations/build.gradle" }}-{{ checksum  "autoproxy-generators/build.gradle" }}-{{ checksum  "autoproxy-processor/build.gradle" }}-{{ checksum  "autoproxy-rx-annotations/build.gradle" }}-{{ checksum  "autoproxy-rx-generators/build.gradle" }}
           
   # DEBUG binaries
   debug:
