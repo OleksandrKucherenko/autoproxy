@@ -6,6 +6,7 @@ import com.olku.annotations.AutoProxyClassGenerator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,11 @@ public class AutoProxyProcessor extends AbstractProcessor {
         annotations.add(AutoProxy.Yield.class.getCanonicalName());
 
         return annotations;
+    }
+
+    @Override
+    public Set<String> getSupportedOptions() {
+        return Collections.singleton("org.gradle.annotation.processing.aggregating");
     }
 
     @Override

@@ -45,9 +45,6 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        /* fix compatibility issue for 2.4.0-alpha4 (and higher) plugin. */
-        javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
     }
 
     buildTypes {
