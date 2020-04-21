@@ -3,10 +3,13 @@ package com.olku.autoproxy.sample;
 import android.net.Uri;
 import android.os.Bundle;
 
-import java.util.List;
-
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 import rx.Observable;
 
 public class MainActivity extends AppCompatActivity implements MvpView {
@@ -22,7 +25,7 @@ public class MainActivity extends AppCompatActivity implements MvpView {
     public MvpView getProxy() {
         return new Proxy_MvpView(this) {
             @Override
-            public boolean predicate(String methodName, Object... args) {
+            public boolean predicate(@Methods @NotNull String methodName, Object... args) {
                 return !isFinishing();
             }
         };

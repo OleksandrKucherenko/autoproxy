@@ -326,3 +326,12 @@ Debugging:
 5. Open terminal and execute `./gradlew clean assembleDebug`
 
 [more details ...](https://stackoverflow.com/questions/8587096/how-do-you-debug-java-annotation-processors-using-intellij)
+
+## Roadmap
+
+- [x] Incremental Annotation Processing
+- [x] Create constants class for method names
+- [x] method name parameter annotated by custom annotation with @StringDef
+- [ ] Add Support for RxJava v2
+- [ ] Add Support for Kotlin language (generate code in Kotlin)
+- [ ] Add Support for RxJava v3

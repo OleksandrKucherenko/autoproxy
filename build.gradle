@@ -16,10 +16,14 @@ buildscript {
         jcenter()
     }
     dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.0-alpha06'
+
         /* In case of submodule usage, do not try to apply own plugin classpath, root project is responsible for that. */
         if (rootProject.buildDir == project.buildDir) {
             /* Connect Android Build Plugin */
             classpath "com.android.tools.build:gradle:${gradlePlugin}"
+            /* Kotlin, https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-gradle-plugin */
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
             /* To confirm JaCoCo version run: $ ./gradlew buildEnvironment */
             //region classpath "org.jacoco:org.jacoco.core:${jacocoVersion}"
             if (useJacoco) {
@@ -35,8 +39,6 @@ buildscript {
             classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${jfrogVersion}"
             /* https://github.com/dcendents/android-maven-gradle-plugin */
             classpath "com.github.dcendents:android-maven-gradle-plugin:${dcendVersion}"
-            /* Kotlin */
-            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
             /* https://github.com/ben-manes/gradle-versions-plugin */
             //region classpath "com.github.ben-manes:gradle-versions-plugin:0.20.0"
             if (useVersions) {

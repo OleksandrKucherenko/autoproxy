@@ -1,13 +1,15 @@
 package com.olku.autoproxy.sample;
 
+import androidx.annotation.NonNull;
+
 import com.google.auto.value.AutoValue;
 import com.olku.annotations.AutoProxy;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import androidx.annotation.NonNull;
 
 /** Abstract class. */
 @AutoValue
@@ -29,14 +31,14 @@ public abstract class ParkingArea {
     public ParkingArea.Builder toBuilder() {
         return new Proxy_ParkingArea$Builder(toBuilderInner()) {
             @Override
-            public boolean predicate(final String methodName, final Object... args) {
+            public boolean predicate(@NotNull final String methodName, final Object... args) {
                 return true; /* allow all calls */
             }
 
             @Override
-            public <R> R afterCall(final String methodName, final R result) {
+            public <R> R afterCall(@NotNull @Methods final String methodName, final R result) {
                 // copy runtime fields from instance after clone creation
-                if ("build".equals(methodName) && result instanceof ParkingArea) {
+                if (Methods.BUILD.equals(methodName) && result instanceof ParkingArea) {
                     ((ParkingArea) result).runtimeData = runtimeData;
                     return result;
                 }

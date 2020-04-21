@@ -1,5 +1,9 @@
 package com.olku.processors;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringDef;
+
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
 import com.olku.annotations.RetBool;
@@ -10,6 +14,7 @@ import com.olku.generators.RetNumberGenerator;
 import com.olku.generators.ReturnsGenerator;
 import com.olku.generators.ReturnsPoet;
 import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -28,7 +33,10 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.processing.Filer;
@@ -39,30 +47,47 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import sun.reflect.annotation.AnnotationParser;
 
 import static javax.tools.Diagnostic.Kind.NOTE;
 
-/** Common Proxy Class generator. Class designed for inheritance. */
+/**
+ * Common Proxy Class generator. Class designed for inheritance.
+ */
 @SuppressWarnings("WeakerAccess")
 public class CommonClassGenerator implements AutoProxyClassGenerator {
     public static boolean IS_DEBUG = AutoProxyProcessor.IS_DEBUG;
 
-    /** Pre-call / predicate method name. */
+    /**
+     * Pre-call / predicate method name.
+     */
     protected static final String PREDICATE = "predicate";
     protected static final String AFTERCALL = "afterCall";
+    /**
+     * Annotation type name that is used for constants definition.
+     */
+    protected static final String METHODS = "Methods";
 
-    /** Data type for processing. */
+    /**
+     * Data type for processing.
+     */
     protected final TypeProcessor type;
-    /** Writer for captured errors. */
+    /**
+     * Writer for captured errors.
+     */
     protected final StringWriter errors = new StringWriter();
-    /** Resolved super type name. */
+    /**
+     * Resolved super type name.
+     */
     protected final TypeName superType;
-    /** Is any 'after calls' annotations found. */
+    /**
+     * Is any 'after calls' annotations found.
+     */
     protected final AtomicBoolean afterCalls = new AtomicBoolean();
+    /**
+     * List of method names.
+     */
+    protected final Set<String> knownMethods = new TreeSet(String.CASE_INSENSITIVE_ORDER);
 
     //region Constructor
 
@@ -80,7 +105,9 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     //region Code generator
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean compose(@NonNull final Filer filer) {
         try {
@@ -100,6 +127,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
                 classSpec.addMethod(createAfterCall().build());
             }
 
+            createNamesOfMethods(classSpec);
+
             // save class to disk
             final JavaFile javaFile = JavaFile.builder(type.packageName.toString(), classSpec.build()).build();
             javaFile.writeTo(filer);
@@ -112,7 +141,9 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return true;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @NonNull
     public String getErrors() {
@@ -210,7 +241,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName);
         builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
         builder.returns(boolean.class);
-        builder.addParameter(String.class, "methodName", Modifier.FINAL);
+
+        final ParameterSpec pMethodNames = ParameterSpec.builder(String.class, "methodName", Modifier.FINAL)
+                .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess(METHODS)).build())
+                .addAnnotation(AnnotationSpec.builder(NonNull.class).build())
+                .build();
+
+        builder.addParameter(pMethodNames);
 
         // varargs 
         builder.varargs(true);
@@ -233,7 +270,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         builder.returns(TypeVariableName.get("R"));
 
-        builder.addParameter(String.class, "methodName", Modifier.FINAL);
+        final ParameterSpec pMethodNames = ParameterSpec.builder(String.class, "methodName", Modifier.FINAL)
+                .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess(METHODS)).build())
+                .addAnnotation(AnnotationSpec.builder(NonNull.class).build())
+                .build();
+        builder.addParameter(pMethodNames);
 
         builder.addParameter(TypeVariableName.get("R"), "result", Modifier.FINAL);
 
@@ -244,6 +285,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     protected MethodSpec.Builder createMethod(final Symbol.MethodSymbol ms) throws Exception {
         final String methodName = ms.getSimpleName().toString();
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName);
+
+        this.knownMethods.add(methodName);
 
         builder.addModifiers(Modifier.FINAL, Modifier.PUBLIC);
 
@@ -265,7 +308,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         // extract throws
         mimicThrows(builder, ms);
 
-        builder.beginControlFlow("if (!$L( $S$L ))", PREDICATE, methodName,
+        builder.beginControlFlow("if (!$L( $L.$L$L ))", PREDICATE,
+                METHODS, toConstantName(methodName),
                 (arguments.length() == 0 ? "" : ", ") + arguments);
 
         // generate default return value
@@ -285,7 +329,9 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
             afterCalls.set(true);
 
             if (hasReturn) {
-                builder.addStatement("return $L($S, this.inner.$N($L))", AFTERCALL, methodName, methodName, arguments);
+                builder.addStatement("return $L($L.$L, this.inner.$N($L))", AFTERCALL,
+                        METHODS, toConstantName(methodName),
+                        methodName, arguments);
             } else {
                 builder.addStatement("this.inner.$N($L)", methodName, arguments);
                 builder.addStatement("$L($S, null)", AFTERCALL, methodName);
@@ -293,6 +339,52 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         }
 
         return builder;
+    }
+
+    /**
+     * Compose constants annotation type.
+     *
+     * @param classSpec generated class specification.
+     */
+    protected void createNamesOfMethods(@NonNull final TypeSpec.Builder classSpec) {
+        final TypeSpec.Builder typeMethods = TypeSpec.annotationBuilder(METHODS)
+                .addModifiers(Modifier.PUBLIC);
+
+        final List<String> constants = new ArrayList<>(knownMethods.size());
+        final StringBuilder format = new StringBuilder().append("{");
+
+        String prefix = "";
+        for (String methodName : knownMethods) {
+            constants.add(METHODS + "." + toConstantName(methodName));
+            format.append(prefix).append("$L");
+
+            final FieldSpec field = FieldSpec
+                    .builder(String.class, toConstantName(methodName), Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
+                    .initializer("$S", methodName)
+                    .build();
+
+            typeMethods.addField(field);
+            prefix = ", ";
+        }
+
+        format.append("}"); // close array
+
+        typeMethods.addAnnotation(AnnotationSpec.builder(StringDef.class)
+                .addMember("value", format.toString(), constants.toArray())
+                .build());
+
+        classSpec.addType(typeMethods.build());
+    }
+
+    /**
+     * Convert provided name to CONSTANT name.
+     *
+     * @param name name of the method that should be converted to suitable constant field name.
+     * @return name suitable for Constant field declaration
+     */
+    @NonNull
+    protected String toConstantName(@NonNull final String name) {
+        return name.toUpperCase(Locale.US);
     }
 
     /**
