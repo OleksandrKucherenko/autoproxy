@@ -209,10 +209,11 @@ public abstract class Proxy_MvpView implements MvpView {
     this.inner = instance;
   }
 
-  public abstract boolean predicate(final String methodName, final Object... args);
+  public abstract boolean predicate(@Methods @NonNull final String methodName,
+      final Object... args);
 
   public final Observable<Boolean> dummyCall() {
-    if (!predicate( "dummyCall" )) {
+    if (!predicate( Methods.DUMMYCALL )) {
       // @com.olku.annotations.AutoProxy.Yield("null")
       return (Observable<Boolean>)null;
     }
@@ -220,7 +221,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> dummyCall(final List<String> generic) {
-    if (!predicate( "dummyCall", generic )) {
+    if (!predicate( Methods.DUMMYCALL, generic )) {
       // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="empty")
       return Observable.empty();
     }
@@ -228,15 +229,15 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> dummyCall(final String message, final List<String> args) {
-    if (!predicate( "dummyCall", message, args )) {
-      // @com.olku.annotations.AutoProxy.Yield("throws")
-      throw new UnsupportedOperationException("cannot resolve return type.");
+    if (!predicate( Methods.DUMMYCALL, message, args )) {
+      // @com.olku.annotations.AutoProxy.Yield
+      throw new UnsupportedOperationException("cannot resolve return value.");
     }
     return this.inner.dummyCall(message, args);
   }
 
   public final Observable<Boolean> dummyCall(final String message, final Object... args) {
-    if (!predicate( "dummyCall", message, args )) {
+    if (!predicate( Methods.DUMMYCALL, message, args )) {
       // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="error")
       return Observable.error(new UnsupportedOperationException("unsupported method call"));
     }
@@ -244,7 +245,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final double numericCall() {
-    if (!predicate( "numericCall" )) {
+    if (!predicate( Methods.NUMERICCALL )) {
       // @com.olku.annotations.AutoProxy.Yield("0")
       return 0;
     }
@@ -252,7 +253,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final boolean booleanCall() {
-    if (!predicate( "booleanCall" )) {
+    if (!predicate( Methods.BOOLEANCALL )) {
       // @com.olku.annotations.AutoProxy.Yield("false")
       return false;
     }
@@ -260,7 +261,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final boolean dispatchDeepLink(@NonNull final Uri deepLink) {
-    if (!predicate( "dispatchDeepLink", deepLink )) {
+    if (!predicate( Methods.DISPATCHDEEPLINK, deepLink )) {
       // @com.olku.annotations.AutoProxy.Yield("direct")
       // direct call, ignore predicate result
     }
@@ -268,14 +269,26 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> startHearthAnimation() {
-    if (!predicate( "startHearthAnimation" )) {
+    if (!predicate( Methods.STARTHEARTHANIMATION )) {
       // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.JustRxGenerator.class, value="true")
       return Observable.just(true);
     }
     return this.inner.startHearthAnimation();
   }
-}
 
+  @StringDef({Methods.BOOLEANCALL, Methods.DISPATCHDEEPLINK, Methods.DUMMYCALL, Methods.NUMERICCALL, Methods.STARTHEARTHANIMATION})
+  public @interface Methods {
+    String BOOLEANCALL = "booleanCall";
+
+    String DISPATCHDEEPLINK = "dispatchDeepLink";
+
+    String DUMMYCALL = "dummyCall";
+
+    String NUMERICCALL = "numericCall";
+
+    String STARTHEARTHANIMATION = "startHearthAnimation";
+  }
+}
 ```
 
 ## Step #5: Usage in project
@@ -291,7 +304,7 @@ public abstract class Proxy_MvpView implements MvpView {
             // destroyed or any other inproper state).
             return new Proxy_MvpView(this.view) {
                 @Override
-                public boolean predicate(final String methodName, final Object... args) {
+                public boolean predicate(@Methods @NonNull final String methodName, final Object... args) {
                     return ((BaseFragment) inner).isUpdatable();
                 }
             };
@@ -327,7 +340,50 @@ Debugging:
 
 [more details ...](https://stackoverflow.com/questions/8587096/how-do-you-debug-java-annotation-processors-using-intellij)
 
-## Roadmap
+## How to Change/Generate GPG signing key?
+
+```bash
+brew install gpg
+gpg --gen-key
+
+# pub   rsa2048 2020-04-21 [SC] [expires: 2022-04-21]
+#       6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9
+# uid                      Oleksandr Kucherenko <kucherenko.alex@gmail.com>
+# sub   rsa2048 2020-04-21 [E] [expires: 2022-04-21]
+gpg -a --export 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.public.key
+gpg -a --export-secret-key 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.private.key
+
+```
+
+- open https://bintray.com/profile/edit
+- Select `GPG Signing`
+- First set the public key and press Update
+- Than press Private Key `Click to Change` and upload private key
+- Store Passpharse in `credentials.gradle`
+
+```diff
+- ext.gpg_password = '<secret>'
++ ext.gpg_password = 'my_new_and_secure_passphrase'
+
+```
+
+
+## How to publish?
+
+Edit file `credentials.gradle` in the root of the project:
+
+```diff
+- ext.bintray_dryrun = true
++ ext.bintray_dryrun = false
+```
+
+Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than Run:
+
+```bash
+./gradlew bintrayUpload
+```
+
+# Roadmap
 
 - [x] Incremental Annotation Processing
 - [x] Create constants class for method names

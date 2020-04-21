@@ -50,6 +50,7 @@ bintray {
 
         version {
             desc = libraryDescription
+            // https://www.jfrog.com/confluence/display/BT/Managing+Uploading+Content+New+UI#ManagingUploadingContentNewUI-GPGSigning
             gpg {
                 sign = true //Determines whether to GPG sign the files. The default is false
 
