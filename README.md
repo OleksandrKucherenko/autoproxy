@@ -348,11 +348,10 @@ gpg --gen-key
 
 # pub   rsa2048 2020-04-21 [SC] [expires: 2022-04-21]
 #       6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9
-# uid                      Oleksandr Kucherenko <kucherenko.alex@gmail.com>
+# uid                      Oleksandr Kucherenko <ku.......x@gmail.com>
 # sub   rsa2048 2020-04-21 [E] [expires: 2022-04-21]
 gpg -a --export 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.public.key
 gpg -a --export-secret-key 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.private.key
-
 ```
 
 - open https://bintray.com/profile/edit
@@ -364,7 +363,6 @@ gpg -a --export-secret-key 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.private
 ```diff
 - ext.gpg_password = '<secret>'
 + ext.gpg_password = 'my_new_and_secure_passphrase'
-
 ```
 
 
