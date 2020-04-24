@@ -16,7 +16,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0-alpha06'
+        classpath 'com.android.tools.build:gradle:4.1.0-alpha07'
 
         /* In case of submodule usage, do not try to apply own plugin classpath, root project is responsible for that. */
         if (rootProject.buildDir == project.buildDir) {
