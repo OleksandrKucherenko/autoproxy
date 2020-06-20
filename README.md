@@ -3,7 +3,6 @@
 [![Build Status](https://travis-ci.org/OleksandrKucherenko/autoproxy.svg?branch=master)](https://travis-ci.org/OleksandrKucherenko/autoproxy)
 [ ![Download](https://api.bintray.com/packages/kucherenko-alex/android/com.olku%3Aautoproxy/images/download.svg) ](https://bintray.com/kucherenko-alex/android/com.olku%3Aautoproxy/_latestVersion)
 
-
 Annotation Processing Library.
 
 Generates proxy class on top of interface/abstract class, that allows to intercept calls.
@@ -23,9 +22,9 @@ view is already detached from Activity. (delayed updated call)
 
 Library gives a little bigger freedom if you think for a second about this:
 
-* predicate method allows to capture all calls. You can easily log all calls for example;
-* auto-generated Proxy class is simple and does not have any performance impacts.
-* used in library approach allows custom generators of code/results. Unknown types is super easy to support.
+- predicate method allows to capture all calls. You can easily log all calls for example;
+- auto-generated Proxy class is simple and does not have any performance impacts.
+- used in library approach allows custom generators of code/results. Unknown types is super easy to support.
 
 # Concepts
 
@@ -50,6 +49,7 @@ From time to time exists situations when we need to intercept and modify results
 In that case library provides `@AutoProxy.AfterCall` annotation.
 
 Declaration:
+
 ```java
 /** Abstract class. */
 @AutoValue
@@ -96,14 +96,13 @@ Change of internal proxy pattern:
 
 ```
 
-
 # Usage
 
 You can use it as a submodule or as compiled libs.
 
 ## Step #1 : configure dependency
 
-```gradle
+```groovy
 repositories {
     maven {
         url  "https://dl.bintray.com/kucherenko-alex/android"
@@ -140,7 +139,7 @@ git submodule update --init --recursive
 
 `app/build.gradle`:
 
-```gradle
+```groovy
     /* AutoProxy generator */
     compileOnly project(':modules:autoproxy:autoproxy-annotations')
     compileOnly project(':modules:autoproxy:autoproxy-rx-annotations')
@@ -152,7 +151,7 @@ git submodule update --init --recursive
 
 `settings.gradle`:
 
-```gradle
+```groovy
 include ':modules:autoproxy:autoproxy-annotations'
 include ':modules:autoproxy:autoproxy-generators'
 include ':modules:autoproxy:autoproxy-rx-annotations'
@@ -318,7 +317,7 @@ http://www.vogella.com/tutorials/GitSubmodules/article.html
 
 ## Reset submodule to remote repository version
 
-```
+```bash
 git submodule foreach 'git reset --hard'
 # including nested submodules
 git submodule foreach --recursive 'git reset --hard'
@@ -327,10 +326,11 @@ git submodule foreach --recursive 'git reset --hard'
 ## How to debug?
 
 Pre-steps:
-* `gradle/version-up.sh` for composing `version.properties` file with a future version
-* `./gradlew install` to publish version in local maven repository
 
-Debugging: 
+- `gradle/version-up.sh` for composing `version.properties` file with a future version
+- `./gradlew install` to publish version in local maven repository
+
+Debugging:
 
 1. Go to terminal and execute `./gradlew --stop`
 2. Enable/UnComment in gradle.properties line `#org.gradle.debug=true`
@@ -364,7 +364,6 @@ gpg -a --export-secret-key 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.private
 - ext.gpg_password = '<secret>'
 + ext.gpg_password = 'my_new_and_secure_passphrase'
 ```
-
 
 ## How to publish?
 
