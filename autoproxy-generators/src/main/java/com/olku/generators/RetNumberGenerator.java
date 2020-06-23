@@ -1,11 +1,11 @@
-package net.easypark.generators;
+package com.olku.generators;
 
 import androidx.annotation.*;
 
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
-import net.easypark.annotations.RetNumber;
+import com.olku.annotations.RetNumber;
 
 import java.util.Map;
 import java.util.TreeMap;

@@ -1,11 +1,11 @@
-package net.easypark.generators;
+package com.olku.generators;
 
 import androidx.annotation.NonNull;
 
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
-import net.easypark.annotations.Returns;
+import com.olku.annotations.Returns;
 
 /** Compose return types for boolean. */
 public class ReturnsGenerator implements ReturnsPoet {

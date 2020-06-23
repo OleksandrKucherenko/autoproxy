@@ -1,4 +1,4 @@
-package net.easypark.annotations;
+package com.olku.annotations;
 
 import androidx.annotation.*;
 

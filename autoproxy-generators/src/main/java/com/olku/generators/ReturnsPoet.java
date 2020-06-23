@@ -1,4 +1,4 @@
-package net.easypark.generators;
+package com.olku.generators;
 
 import androidx.annotation.*;
 

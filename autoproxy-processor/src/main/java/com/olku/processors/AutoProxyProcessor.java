@@ -1,9 +1,9 @@
-package net.easypark.processors;
+package com.olku.processors;
 
 import com.google.auto.service.AutoService;
 
-import net.easypark.annotations.AutoProxy;
-import net.easypark.annotations.AutoProxyClassGenerator;
+import com.olku.annotations.AutoProxy;
+import com.olku.annotations.AutoProxyClassGenerator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

@@ -1,4 +1,4 @@
-package net.easypark.processors;
+package com.olku.processors;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,16 +16,16 @@ import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 
-import net.easypark.annotations.AutoProxy;
-import net.easypark.annotations.AutoProxy.Flags;
-import net.easypark.annotations.AutoProxyClassGenerator;
-import net.easypark.annotations.RetBool;
-import net.easypark.annotations.RetNumber;
-import net.easypark.annotations.Returns;
-import net.easypark.generators.RetBoolGenerator;
-import net.easypark.generators.RetNumberGenerator;
-import net.easypark.generators.ReturnsGenerator;
-import net.easypark.generators.ReturnsPoet;
+import com.olku.annotations.AutoProxy;
+import com.olku.annotations.AutoProxy.Flags;
+import com.olku.annotations.AutoProxyClassGenerator;
+import com.olku.annotations.RetBool;
+import com.olku.annotations.RetNumber;
+import com.olku.annotations.Returns;
+import com.olku.generators.RetBoolGenerator;
+import com.olku.generators.RetNumberGenerator;
+import com.olku.generators.ReturnsGenerator;
+import com.olku.generators.ReturnsPoet;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

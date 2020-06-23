@@ -1,11 +1,11 @@
-package net.easypark.generators;
+package com.olku.generators;
 
 import androidx.annotation.*;
 
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
-import net.easypark.annotations.RetRx;
+import com.olku.annotations.RetRx;
 
 /** RxJava return values generator. */
 public class RetRxGenerator implements ReturnsPoet {

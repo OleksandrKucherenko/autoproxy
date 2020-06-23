@@ -1,4 +1,4 @@
-package net.easypark.processors;
+package com.olku.processors;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -7,8 +7,8 @@ import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 
-import net.easypark.annotations.AutoProxy;
-import net.easypark.annotations.AutoProxyClassGenerator;
+import com.olku.annotations.AutoProxy;
+import com.olku.annotations.AutoProxyClassGenerator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
