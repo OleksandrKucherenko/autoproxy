@@ -1,8 +1,8 @@
-package com.olku.annotations;
-
-import java.lang.annotation.Retention;
+package net.easypark.annotations;
 
 import androidx.annotation.StringDef;
+
+import java.lang.annotation.Retention;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -20,6 +20,8 @@ public @interface Returns {
     String NULL = "null";
     /** Direct call with ignore of predicate method result. */
     String DIRECT = "direct";
+    /** Default value is reference on current instance. */
+    String THIS = "this";
 }
 
 

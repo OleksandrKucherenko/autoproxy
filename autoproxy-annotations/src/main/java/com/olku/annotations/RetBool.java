@@ -1,8 +1,8 @@
-package com.olku.annotations;
+package net.easypark.annotations;
+
+import androidx.annotation.*;
 
 import java.lang.annotation.Retention;
-
-import androidx.annotation.StringDef;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
