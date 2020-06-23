@@ -1,13 +1,14 @@
-package com.olku.generators;
+package net.easypark.generators;
 
-import com.olku.annotations.RetNumber;
+import androidx.annotation.*;
+
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
+import net.easypark.annotations.RetNumber;
+
 import java.util.Map;
 import java.util.TreeMap;
-
-import androidx.annotation.NonNull;
 
 /** Compose return types for boolean. */
 public class RetNumberGenerator implements ReturnsPoet {
@@ -55,6 +56,6 @@ public class RetNumberGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        /* package */ static final RetNumberGenerator INSTANCE = new RetNumberGenerator();
+        static final RetNumberGenerator INSTANCE = new RetNumberGenerator();
     }
 }

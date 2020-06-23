@@ -1,9 +1,9 @@
-package com.olku.generators;
+package net.easypark.generators;
+
+import androidx.annotation.*;
 
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
-
-import androidx.annotation.NonNull;
 
 /** Code generator interface. */
 public interface ReturnsPoet {

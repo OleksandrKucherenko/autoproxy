@@ -1,9 +1,9 @@
-package com.olku.generators;
+package net.easypark.generators;
+
+import androidx.annotation.*;
 
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
-
-import androidx.annotation.NonNull;
 
 /** RxJava return values generator. */
 public class JustRxGenerator implements ReturnsPoet {
@@ -24,6 +24,6 @@ public class JustRxGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        /* package */ static final JustRxGenerator INSTANCE = new JustRxGenerator();
+        static final JustRxGenerator INSTANCE = new JustRxGenerator();
     }
 }

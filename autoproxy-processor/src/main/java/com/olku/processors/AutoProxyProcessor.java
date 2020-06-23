@@ -1,13 +1,16 @@
-package com.olku.processors;
+package net.easypark.processors;
 
 import com.google.auto.service.AutoService;
-import com.olku.annotations.AutoProxy;
-import com.olku.annotations.AutoProxyClassGenerator;
+
+import net.easypark.annotations.AutoProxy;
+import net.easypark.annotations.AutoProxyClassGenerator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +29,11 @@ import javax.lang.model.util.Types;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.NOTE;
 
-/** Annotation processor. Generate proxy class for interface. */
+/**
+ * Annotation processor. Generate proxy class for interface.
+ *
+ * @see <a href="https://docs.gradle.org/nightly/userguide/java_plugin.html#sec:incremental_annotation_processing">Incremental Annotation Processing</a>
+ */
 @AutoService(Processor.class)
 @SuppressWarnings("unused")
 public class AutoProxyProcessor extends AbstractProcessor {
@@ -36,6 +43,8 @@ public class AutoProxyProcessor extends AbstractProcessor {
     private Types typesUtil;
     private Elements elementsUtil;
     private Filer filer;
+    /** @see <a href="https://github.com/evernote/android-state/commit/0072478291e2735223d6c14cb79a6b26524ec075#diff-6">Support incremental annotation processing</a> */
+    private HashMap<String, List<Element>> mMapGeneratedFileToOriginatingElements = new LinkedHashMap<>();
 
     @Override
     public synchronized void init(final ProcessingEnvironment pe) {
@@ -54,11 +63,6 @@ public class AutoProxyProcessor extends AbstractProcessor {
         annotations.add(AutoProxy.Yield.class.getCanonicalName());
 
         return annotations;
-    }
-
-    @Override
-    public Set<String> getSupportedOptions() {
-        return Collections.singleton("org.gradle.annotation.processing.aggregating");
     }
 
     @Override
@@ -85,9 +89,14 @@ public class AutoProxyProcessor extends AbstractProcessor {
 
                 final AutoProxyClassGenerator generator = tp.generator();
 
-                if (!generator.compose(filer)) {
-//                    logger.printMessage(ERROR, generator.getErrors());
-                    logger.printMessage(NOTE, generator.getErrors());
+                if (generator.compose(filer)) {
+                    if (IS_DEBUG) logger.printMessage(NOTE, "--- file: " + generator.getName());
+                    if (IS_DEBUG) logger.printMessage(NOTE, "--- elements: " + generator.getOriginating().size());
+                    if (IS_DEBUG) logger.printMessage(NOTE, "--- elements: " + generator.getOriginating().get(0).getSimpleName());
+
+                    mMapGeneratedFileToOriginatingElements.put(generator.getName(), generator.getOriginating());
+                } else {
+                    logger.printMessage(IS_DEBUG ? ERROR : NOTE, generator.getErrors());
                 }
             } catch (Throwable e) {
                 e.printStackTrace(new PrintWriter(errors));
@@ -100,10 +109,13 @@ public class AutoProxyProcessor extends AbstractProcessor {
         }
 
         if (failed > 0) {
-//            logger.printMessage(NOTE, errors.toString());
             logger.printMessage(ERROR, errors.toString());
         }
 
         return true;
+    }
+
+    public HashMap<String, List<Element>> getMapGeneratedFileToOriginatingElements() {
+        return mMapGeneratedFileToOriginatingElements;
     }
 }

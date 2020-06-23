@@ -1,10 +1,11 @@
-package com.olku.generators;
+package net.easypark.generators;
 
-import com.olku.annotations.RetBool;
+import androidx.annotation.*;
+
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
-import androidx.annotation.NonNull;
+import net.easypark.annotations.RetBool;
 
 /** Compose return types for boolean. */
 public class RetBoolGenerator implements ReturnsPoet {
@@ -28,6 +29,6 @@ public class RetBoolGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        /* package */ static final RetBoolGenerator INSTANCE = new RetBoolGenerator();
+        static final RetBoolGenerator INSTANCE = new RetBoolGenerator();
     }
 }

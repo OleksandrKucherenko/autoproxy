@@ -1,14 +1,17 @@
-package com.olku.processors;
+package net.easypark.processors;
 
-import com.olku.annotations.AutoProxy;
-import com.olku.annotations.AutoProxyClassGenerator;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 
+import net.easypark.annotations.AutoProxy;
+import net.easypark.annotations.AutoProxyClassGenerator;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +28,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import sun.reflect.annotation.AnnotationParser;
 
@@ -46,12 +46,7 @@ public class TypeProcessor {
     final Messager logger;
     final ArrayList<Element> methods;
 
-    /**
-     * Main constructor.
-     *
-     * @param element reference on code element that we process now.
-     * @param logger  instance of logger for debug information
-     */
+    /** Main constructor. */
     public TypeProcessor(@NonNull final Element element, @NonNull final Messager logger) {
         this.element = element;
         this.logger = logger;
@@ -59,7 +54,7 @@ public class TypeProcessor {
         elementName = element.getSimpleName();
         flatClassName = flatName(element);
 
-        final Symbol.PackageSymbol packageInfo = (Symbol.PackageSymbol) findPackage(element);
+        final PackageElement packageInfo = findPackage(element);
         packageName = packageInfo.getQualifiedName();
         elementType = element.asType();
 
@@ -68,13 +63,7 @@ public class TypeProcessor {
         methods = new ArrayList<>();
     }
 
-    /**
-     * Compose flat name for provided class element. Nested classes will be divided by '$' symbol.
-     *
-     * @param classInfo reference on class element
-     * @return flatten name of the class.
-     */
-    @NonNull
+    /** Compose flat name for provided class element. Nested classes will be divided by '$' symbol. */
     public String flatName(@NonNull final Element classInfo) {
         StringBuilder builder = new StringBuilder();
 
@@ -84,7 +73,7 @@ public class TypeProcessor {
         while (null != start && !(start instanceof PackageElement)) {
             builder.insert(0, start.getSimpleName() + divider);
 
-            start = ((Symbol) start).owner;
+            start = start.getEnclosingElement();
 
             divider = "$";
         }
@@ -92,18 +81,13 @@ public class TypeProcessor {
         return builder.toString();
     }
 
-    /**
-     * Find package name for provided class element.
-     *
-     * @param classInfo reference on class information.
-     * @return found package name element or raise runtime error.
-     */
+    /** Find package name for provided class element. */
     @NonNull
     public PackageElement findPackage(@NonNull final Element classInfo) {
         Element start = classInfo;
 
         while (null != start && !(start instanceof PackageElement)) {
-            start = ((Symbol) start).owner;
+            start = start.getEnclosingElement();
         }
 
         if (null != start)
@@ -112,11 +96,7 @@ public class TypeProcessor {
         throw new AssertionError("Cannot find a package name for class. " + classInfo);
     }
 
-    /**
-     * Extract methods from all inheritance methods.
-     *
-     * @param typeUtils reference on type information.
-     */
+    /** Extract methods from all inheritance methods. */
     public void extractMethods(@NonNull final Types typeUtils) {
         final Set<? extends Element> elements = inheritance(typeUtils, (TypeElement) element);
 
@@ -204,11 +184,7 @@ public class TypeProcessor {
         return "AutoProxy Processing : " + elementType.toString();
     }
 
-    /**
-     * Get new instance of class generator.
-     *
-     * @return instance of code generator.
-     */
+    /** Get new instance of class generator. */
     @NonNull
     public AutoProxyClassGenerator generator() {
         // https://area-51.blog/2009/02/13/getting-class-values-from-annotations-in-an-annotationprocessor/
@@ -216,7 +192,7 @@ public class TypeProcessor {
             Class<?> generator = annotation.value();
 
             // quick jump to default generator
-            if (generator == AutoProxyClassGenerator.class || generator == AutoProxy.Default.class)
+            if (generator == AutoProxyClassGenerator.class || generator == AutoProxy.Common.class)
                 return new CommonClassGenerator(this);
 
             // create new instance by reflection
@@ -231,12 +207,10 @@ public class TypeProcessor {
     @NonNull
     private AutoProxy extractAnnotation(@Nullable final Attribute.Compound annotation) {
         // extract default values, https://stackoverflow.com/questions/16299717/how-to-create-an-instance-of-an-annotation
-        if (IS_DEBUG)
-            logger.printMessage(NOTE, "extracting: " + (null != annotation ? annotation.toString() : "NULL"));
+        if (IS_DEBUG) logger.printMessage(NOTE, "extracting: " + (null != annotation ? annotation.toString() : "NULL"));
 
-        // default values of Yield
-        final Map<String, Object> map = new HashMap<>();
-        map.put("value", AutoProxy.Default.class);
+        // default values of AutoProxy
+        final Map<String, Object> map = AutoProxy.DefaultAutoProxy.asMap();
 
         // overrides
         if (null != annotation) {
