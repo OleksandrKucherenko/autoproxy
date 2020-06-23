@@ -1,11 +1,11 @@
 package com.olku.generators;
 
 import androidx.annotation.NonNull;
-
-import com.squareup.javapoet.MethodSpec;
-import com.sun.tools.javac.code.Type;
+import androidx.annotation.Nullable;
 
 import com.olku.annotations.Returns;
+import com.squareup.javapoet.MethodSpec;
+import com.sun.tools.javac.code.Type;
 
 /** Compose return types for boolean. */
 public class ReturnsGenerator implements ReturnsPoet {
@@ -15,7 +15,7 @@ public class ReturnsGenerator implements ReturnsPoet {
     }
 
     public boolean compose(@NonNull final Type returnType,
-                           @NonNull @Returns final String type,
+                           @Nullable @Returns final String type,
                            @NonNull final MethodSpec.Builder builder) {
         // empty string
         if (Returns.EMPTY.equals(type)) {
@@ -52,6 +52,6 @@ public class ReturnsGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        static final ReturnsGenerator INSTANCE = new ReturnsGenerator();
+        /* package */ static final ReturnsGenerator INSTANCE = new ReturnsGenerator();
     }
 }

@@ -55,6 +55,9 @@ public @interface AutoProxy {
         int AFTER_CALL = 0x0002;
         /** Compose callByName(...) method that maps string name to a method call. */
         int MAPPING = 0x004;
+
+        /** Compose all additional methods. */
+        int ALL = CREATOR | AFTER_CALL | MAPPING;
     }
 
     /**

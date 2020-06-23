@@ -1,11 +1,11 @@
 package com.olku.generators;
 
-import androidx.annotation.*;
-
-import com.squareup.javapoet.MethodSpec;
-import com.sun.tools.javac.code.Type;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.olku.annotations.RetNumber;
+import com.squareup.javapoet.MethodSpec;
+import com.sun.tools.javac.code.Type;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,7 +30,7 @@ public class RetNumberGenerator implements ReturnsPoet {
     }
 
     public boolean compose(@NonNull final Type returnType,
-                           @NonNull @RetNumber final String type,
+                           @Nullable @RetNumber final String type,
                            @NonNull final MethodSpec.Builder builder) {
         final Class<?> output = PRIMITIVES.get(returnType.toString());
 
@@ -56,6 +56,6 @@ public class RetNumberGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        static final RetNumberGenerator INSTANCE = new RetNumberGenerator();
+        /* package */ static final RetNumberGenerator INSTANCE = new RetNumberGenerator();
     }
 }

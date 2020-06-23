@@ -162,7 +162,7 @@ include ':modules:autoproxy:autoproxy-processor'
 ## Step #3: Declare proxy class specifics
 
 ```java
-@AutoProxy
+@AutoProxy(flags = AutoProxy.Flags.ALL)
 public interface MvpView {
     /** Returns NULL if predicate returns False. */
     @AutoProxy.Yield(Returns.NULL)
@@ -220,7 +220,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> dummyCall(final List<String> generic) {
-    if (!predicate( Methods.DUMMYCALL, generic )) {
+    if (!predicate( M.DUMMYCALL, generic )) {
       // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="empty")
       return Observable.empty();
     }
@@ -228,7 +228,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> dummyCall(final String message, final List<String> args) {
-    if (!predicate( Methods.DUMMYCALL, message, args )) {
+    if (!predicate( M.DUMMYCALL, message, args )) {
       // @com.olku.annotations.AutoProxy.Yield
       throw new UnsupportedOperationException("cannot resolve return value.");
     }
@@ -236,7 +236,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> dummyCall(final String message, final Object... args) {
-    if (!predicate( Methods.DUMMYCALL, message, args )) {
+    if (!predicate( M.DUMMYCALL, message, args )) {
       // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.RetRxGenerator.class, value="error")
       return Observable.error(new UnsupportedOperationException("unsupported method call"));
     }
@@ -244,7 +244,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final double numericCall() {
-    if (!predicate( Methods.NUMERICCALL )) {
+    if (!predicate( M.NUMERICCALL )) {
       // @com.olku.annotations.AutoProxy.Yield("0")
       return 0;
     }
@@ -252,7 +252,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final boolean booleanCall() {
-    if (!predicate( Methods.BOOLEANCALL )) {
+    if (!predicate( M.BOOLEANCALL )) {
       // @com.olku.annotations.AutoProxy.Yield("false")
       return false;
     }
@@ -260,7 +260,7 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final boolean dispatchDeepLink(@NonNull final Uri deepLink) {
-    if (!predicate( Methods.DISPATCHDEEPLINK, deepLink )) {
+    if (!predicate( M.DISPATCHDEEPLINK, deepLink )) {
       // @com.olku.annotations.AutoProxy.Yield("direct")
       // direct call, ignore predicate result
     }
@@ -268,23 +268,48 @@ public abstract class Proxy_MvpView implements MvpView {
   }
 
   public final Observable<Boolean> startHearthAnimation() {
-    if (!predicate( Methods.STARTHEARTHANIMATION )) {
+    if (!predicate( M.STARTHEARTHANIMATION )) {
       // @com.olku.annotations.AutoProxy.Yield(adapter=com.olku.generators.JustRxGenerator.class, value="true")
       return Observable.just(true);
     }
     return this.inner.startHearthAnimation();
   }
 
-  @StringDef({Methods.BOOLEANCALL, Methods.DISPATCHDEEPLINK, Methods.DUMMYCALL, Methods.NUMERICCALL, Methods.STARTHEARTHANIMATION})
-  public @interface Methods {
+  @StringDef({M.BOOLEANCALL, M.DISPATCHDEEPLINK_DEEPLINK, M.DUMMYCALL, M.DUMMYCALL_GENERIC, M.DUMMYCALL_MESSAGE_ARGS, M.NUMERICCALL, M.STARTHEARTHANIMATION})
+  public @interface M {
+    /**
+     * {@link #booleanCall()}
+     */
     String BOOLEANCALL = "booleanCall";
 
-    String DISPATCHDEEPLINK = "dispatchDeepLink";
+    /**
+     * {@link #dispatchDeepLink(android.net.Uri)}
+     */
+    String DISPATCHDEEPLINK_DEEPLINK = "dispatchDeepLink_deepLink";
 
+    /**
+     * {@link #dummyCall()}
+     */
     String DUMMYCALL = "dummyCall";
 
+    /**
+     * {@link #dummyCall(java.util.List<java.lang.String>)}
+     */
+    String DUMMYCALL_GENERIC = "dummyCall_generic";
+
+    /**
+     * {@link #dummyCall(java.lang.String, java.lang.Object[])}
+     */
+    String DUMMYCALL_MESSAGE_ARGS = "dummyCall_message_args";
+
+    /**
+     * {@link #numericCall()}
+     */
     String NUMERICCALL = "numericCall";
 
+    /**
+     * {@link #startHearthAnimation()}
+     */
     String STARTHEARTHANIMATION = "startHearthAnimation";
   }
 }
@@ -309,6 +334,76 @@ public abstract class Proxy_MvpView implements MvpView {
             };
         }
 
+```
+
+## Customization of Generated Code
+
+By providing special flags you can customize output of AutoProxy generator:
+
+```kotlin
+@AutoProxy(flags = AutoProxy.Flags.ALL)
+abstract class KotlinAbstractMvpView {
+  /* ... */
+}
+```
+
+Outputs:
+
+```java
+  public abstract <T> T afterCall(@M @NonNull final String methodName, final T result);
+
+  /**
+   * Copy this declaration to fix method demands for old APIs:
+   *
+   * <pre>
+   * package java.util.function;
+   *
+   * public interface BiFunction&lt;T, U, R&gt; {
+   *     R apply(T t, U u);
+   * }
+   * </pre>
+   */
+  public static KotlinAbstractMvpView create(final KotlinAbstractMvpView instance,
+      final BiFunction<String, Object[], Boolean> action) {
+    return new Proxy_KotlinAbstractMvpView(instance) {
+
+      @Override
+      public boolean predicate(final String methodName, final Object... args) {
+        return action.apply(methodName, args);
+      }
+
+      @Override
+      public <T> T afterCall(final String methodName, final T result) {
+        return result;
+      };
+    };
+  }
+
+  public <T> T dispatchByName(@M @NonNull final String methodName, final Object... args) {
+    final Object result;
+    if(M.BOOLEANCALL.equals(methodName)) {
+      return (T)(result = this.inner.booleanCall());
+    }
+    if(M.DISPATCHDEEPLINK_DEEPLINK.equals(methodName)) {
+      return (T)(result = this.inner.dispatchDeepLink((android.net.Uri)args[0] /*deepLink*/));
+    }
+    if(M.DUMMYCALL.equals(methodName)) {
+      return (T)(result = this.inner.dummyCall());
+    }
+    if(M.DUMMYCALL_GENERIC.equals(methodName)) {
+      return (T)(result = this.inner.dummyCall((java.util.List<java.lang.String>)args[0] /*generic*/));
+    }
+    if(M.DUMMYCALL_MESSAGE_ARGS.equals(methodName)) {
+      return (T)(result = this.inner.dummyCall((java.lang.String)args[0] /*message*/, (java.lang.Object[])args[1] /*args*/));
+    }
+    if(M.NUMERICCALL.equals(methodName)) {
+      return (T)(result = this.inner.numericCall());
+    }
+    if(M.STARTHEARTHANIMATION.equals(methodName)) {
+      return (T)(result = this.inner.startHearthAnimation());
+    }
+    return (T)null;
+  }
 ```
 
 # Troubles

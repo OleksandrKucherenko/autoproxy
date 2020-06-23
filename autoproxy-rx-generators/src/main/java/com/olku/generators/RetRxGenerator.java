@@ -1,11 +1,11 @@
 package com.olku.generators;
 
-import androidx.annotation.*;
-
-import com.squareup.javapoet.MethodSpec;
-import com.sun.tools.javac.code.Type;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.olku.annotations.RetRx;
+import com.squareup.javapoet.MethodSpec;
+import com.sun.tools.javac.code.Type;
 
 /** RxJava return values generator. */
 public class RetRxGenerator implements ReturnsPoet {
@@ -15,7 +15,7 @@ public class RetRxGenerator implements ReturnsPoet {
     }
 
     public boolean compose(@NonNull final Type returnType,
-                           @RetRx final String type,
+                           @Nullable @RetRx final String type,
                            @NonNull final MethodSpec.Builder builder) {
         if (RetRx.EMPTY.equals(type)) {
 //            rx.Observable.empty();
@@ -37,6 +37,6 @@ public class RetRxGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        static final RetRxGenerator INSTANCE = new RetRxGenerator();
+        /* package */ static final RetRxGenerator INSTANCE = new RetRxGenerator();
     }
 }

@@ -16,9 +16,11 @@ public interface AutoProxyClassGenerator {
     @NonNull
     String getErrors();
 
+    /** Get file Name. */
     @NonNull
     String getName();
 
+    /** Get generated elements. */
     @NonNull
     List<Element> getOriginating();
 }

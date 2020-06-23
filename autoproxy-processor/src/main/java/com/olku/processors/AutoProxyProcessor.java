@@ -1,12 +1,12 @@
 package com.olku.processors;
 
 import com.google.auto.service.AutoService;
-
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -66,6 +66,11 @@ public class AutoProxyProcessor extends AbstractProcessor {
     }
 
     @Override
+    public Set<String> getSupportedOptions() {
+        return Collections.singleton("org.gradle.annotation.processing.aggregating");
+    }
+
+    @Override
     public SourceVersion getSupportedSourceVersion() {
         return SourceVersion.latestSupported();
     }
@@ -104,9 +109,24 @@ public class AutoProxyProcessor extends AbstractProcessor {
             }
 
             final long end = System.nanoTime();
-            if (!IS_DEBUG) logger.printMessage(NOTE, (null != tp ? tp.toShortString() : "TypeProcessor FAILED!") +
-                    " takes: " + TimeUnit.NANOSECONDS.toMillis(end - now) + "ms\n");
+            if (!IS_DEBUG) {
+                logger.printMessage(NOTE, (null != tp ? tp.toShortString() : "TypeProcessor FAILED!") +
+                        " takes: " + TimeUnit.NANOSECONDS.toMillis(end - now) + "ms\n");
+            }
         }
+
+        // TODO: compose utility class that used for CREATOR's methods
+
+        //    /**
+        //     * Represents a function with two arguments.
+        //     *
+        //     * @param <T1> the first argument type
+        //     * @param <T2> the second argument type
+        //     * @param <R>  the result type
+        //     */
+        //    public interface Func2<T1, T2, R> {
+        //        R call(T1 t1, T2 t2);
+        //    }
 
         if (failed > 0) {
             logger.printMessage(ERROR, errors.toString());
