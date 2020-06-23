@@ -6,7 +6,7 @@ import com.olku.generators.JustRxGenerator
 import com.olku.generators.RetRxGenerator
 import rx.Observable
 
-@AutoProxy(flags = AutoProxy.Flags.ALL)
+@AutoProxy(flags = AutoProxy.Flags.CREATOR)
 abstract class KotlinAbstractMvpView {
     /** Returns NULL if predicate returns False. */
     @AutoProxy.Yield(Returns.NULL)
