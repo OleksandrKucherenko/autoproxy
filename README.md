@@ -17,14 +17,21 @@ UML PROXY PATTERN:
 
 # Why should I use it?
 
-Library solves common Mvp View problem: call of view from presenter when
+## Use Cases
+
+1. create proxy class that ignore all calls till UI is in a right lifecycle state; Library solves common Mvp View problem: call of view from presenter when
 view is already detached from Activity. (delayed updated call)
+2. inject side-effects on top of existing implementation. Example: log all the calls to proxy, control sequence and performance;
+3. Lazy initialization, record all calls and playback them on instance that reach a specific state;
+4. Mutability injection into AutoValue Builder (complex data migration from one AutoValue instance to another). AutoValue classes as DB with automatic Primary Key auto-increment;
+5. Mocks vs Fakes. Generate a fake implementation by annotating primary interface/abstract class
+6. Composing Adapter (Frontend) for another API 
 
-Library gives a little bigger freedom if you think for a second about this:
+Library gives a bigger freedom if you think for a second about it:
 
-- predicate method allows to capture all calls. You can easily log all calls for example;
-- auto-generated Proxy class is simple and does not have any performance impacts.
+- auto-generated Proxy class is simple and does not have any performance impacts. No Reflection. All resolved during the compilation time. Survive ProGuard optimization/obfuscation. 
 - used in library approach allows custom generators of code/results. Unknown types is super easy to support.
+- Allows to decouple main application business logic from different side-effects and dependencies
 
 # Concepts
 
@@ -117,6 +124,7 @@ dependencies{
 
     annotationProcessor 'com.olku:autoproxy-rx-generators:+'
     annotationProcessor 'com.olku:autoproxy-processor:+'
+
 }
 ```
 
@@ -145,8 +153,14 @@ git submodule update --init --recursive
     compileOnly project(':modules:autoproxy:autoproxy-rx-annotations')
     compileOnly project(':modules:autoproxy:autoproxy-rx-generators')
 
+    /* For Java Projects */
     annotationProcessor project(':modules:autoproxy:autoproxy-rx-generators')
     annotationProcessor project(':modules:autoproxy:autoproxy-processor')
+
+    /* OR for Kotlin Projects */
+    kapt project(':modules:autoproxy-rx-generators')
+    kapt project(':modules:autoproxy-processor')
+
 ```
 
 `settings.gradle`:
@@ -480,6 +494,9 @@ Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than 
 - [x] Incremental Annotation Processing
 - [x] Create constants class for method names
 - [x] method name parameter annotated by custom annotation with @StringDef
+- [x] static `create` method that allows proxy creation with use of lambda
+- [x] `dispatchByName` method that calls specific inner instance method with provided parameters
+- [x] customization auto-generation flags, configure demands to helper code
 - [ ] Add Support for RxJava v2
 - [ ] Add Support for Kotlin language (generate code in Kotlin)
 - [ ] Add Support for RxJava v3
