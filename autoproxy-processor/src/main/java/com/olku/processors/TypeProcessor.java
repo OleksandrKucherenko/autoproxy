@@ -1,5 +1,8 @@
 package com.olku.processors;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
 import com.sun.tools.javac.code.Attribute;
@@ -8,7 +11,6 @@ import com.sun.tools.javac.code.Type;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +27,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import sun.reflect.annotation.AnnotationParser;
 
@@ -216,7 +215,7 @@ public class TypeProcessor {
             Class<?> generator = annotation.value();
 
             // quick jump to default generator
-            if (generator == AutoProxyClassGenerator.class || generator == AutoProxy.Default.class)
+            if (generator == AutoProxyClassGenerator.class || generator == AutoProxy.Common.class)
                 return new CommonClassGenerator(this);
 
             // create new instance by reflection
@@ -231,12 +230,10 @@ public class TypeProcessor {
     @NonNull
     private AutoProxy extractAnnotation(@Nullable final Attribute.Compound annotation) {
         // extract default values, https://stackoverflow.com/questions/16299717/how-to-create-an-instance-of-an-annotation
-        if (IS_DEBUG)
-            logger.printMessage(NOTE, "extracting: " + (null != annotation ? annotation.toString() : "NULL"));
+        if (IS_DEBUG) logger.printMessage(NOTE, "extracting: " + (null != annotation ? annotation.toString() : "NULL"));
 
-        // default values of Yield
-        final Map<String, Object> map = new HashMap<>();
-        map.put("value", AutoProxy.Default.class);
+        // default values of AutoProxy
+        final Map<String, Object> map = AutoProxy.DefaultAutoProxy.asMap();
 
         // overrides
         if (null != annotation) {

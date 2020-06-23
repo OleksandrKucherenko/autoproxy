@@ -7,7 +7,10 @@ import com.olku.annotations.AutoProxyClassGenerator;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +29,11 @@ import javax.lang.model.util.Types;
 import static javax.tools.Diagnostic.Kind.ERROR;
 import static javax.tools.Diagnostic.Kind.NOTE;
 
-/** Annotation processor. Generate proxy class for interface. */
+/**
+ * Annotation processor. Generate proxy class for interface.
+ *
+ * @see <a href="https://docs.gradle.org/nightly/userguide/java_plugin.html#sec:incremental_annotation_processing">Incremental Annotation Processing</a>
+ */
 @AutoService(Processor.class)
 @SuppressWarnings("unused")
 public class AutoProxyProcessor extends AbstractProcessor {
@@ -36,6 +43,8 @@ public class AutoProxyProcessor extends AbstractProcessor {
     private Types typesUtil;
     private Elements elementsUtil;
     private Filer filer;
+    /** @see <a href="https://github.com/evernote/android-state/commit/0072478291e2735223d6c14cb79a6b26524ec075#diff-6">Support incremental annotation processing</a> */
+    private HashMap<String, List<Element>> mMapGeneratedFileToOriginatingElements = new LinkedHashMap<>();
 
     @Override
     public synchronized void init(final ProcessingEnvironment pe) {
@@ -85,9 +94,14 @@ public class AutoProxyProcessor extends AbstractProcessor {
 
                 final AutoProxyClassGenerator generator = tp.generator();
 
-                if (!generator.compose(filer)) {
-//                    logger.printMessage(ERROR, generator.getErrors());
-                    logger.printMessage(NOTE, generator.getErrors());
+                if (generator.compose(filer)) {
+                    if (IS_DEBUG) logger.printMessage(NOTE, "--- file: " + generator.getName());
+                    if (IS_DEBUG) logger.printMessage(NOTE, "--- elements: " + generator.getOriginating().size());
+                    if (IS_DEBUG) logger.printMessage(NOTE, "--- elements: " + generator.getOriginating().get(0).getSimpleName());
+
+                    mMapGeneratedFileToOriginatingElements.put(generator.getName(), generator.getOriginating());
+                } else {
+                    logger.printMessage(IS_DEBUG ? ERROR : NOTE, generator.getErrors());
                 }
             } catch (Throwable e) {
                 e.printStackTrace(new PrintWriter(errors));
@@ -95,15 +109,33 @@ public class AutoProxyProcessor extends AbstractProcessor {
             }
 
             final long end = System.nanoTime();
-            if (!IS_DEBUG) logger.printMessage(NOTE, (null != tp ? tp.toShortString() : "TypeProcessor FAILED!") +
-                    " takes: " + TimeUnit.NANOSECONDS.toMillis(end - now) + "ms\n");
+            if (!IS_DEBUG) {
+                logger.printMessage(NOTE, (null != tp ? tp.toShortString() : "TypeProcessor FAILED!") +
+                        " takes: " + TimeUnit.NANOSECONDS.toMillis(end - now) + "ms\n");
+            }
         }
 
+        // TODO: compose utility class that used for CREATOR's methods
+
+        //    /**
+        //     * Represents a function with two arguments.
+        //     *
+        //     * @param <T1> the first argument type
+        //     * @param <T2> the second argument type
+        //     * @param <R>  the result type
+        //     */
+        //    public interface Func2<T1, T2, R> {
+        //        R call(T1 t1, T2 t2);
+        //    }
+
         if (failed > 0) {
-//            logger.printMessage(NOTE, errors.toString());
             logger.printMessage(ERROR, errors.toString());
         }
 
         return true;
+    }
+
+    public HashMap<String, List<Element>> getMapGeneratedFileToOriginatingElements() {
+        return mMapGeneratedFileToOriginatingElements;
     }
 }

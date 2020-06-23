@@ -1,10 +1,11 @@
 package com.olku.generators;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.olku.annotations.RetRx;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
-
-import androidx.annotation.NonNull;
 
 /** RxJava return values generator. */
 public class RetRxGenerator implements ReturnsPoet {
@@ -14,7 +15,7 @@ public class RetRxGenerator implements ReturnsPoet {
     }
 
     public boolean compose(@NonNull final Type returnType,
-                           @RetRx final String type,
+                           @Nullable @RetRx final String type,
                            @NonNull final MethodSpec.Builder builder) {
         if (RetRx.EMPTY.equals(type)) {
 //            rx.Observable.empty();

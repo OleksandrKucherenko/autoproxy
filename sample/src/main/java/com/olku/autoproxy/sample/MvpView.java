@@ -2,6 +2,8 @@ package com.olku.autoproxy.sample;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.RetBool;
 import com.olku.annotations.RetNumber;
@@ -12,11 +14,10 @@ import com.olku.generators.RetRxGenerator;
 
 import java.util.List;
 
-import androidx.annotation.NonNull;
 import rx.Observable;
 
 /** MVP view interface. */
-@AutoProxy
+@AutoProxy(flags = AutoProxy.Flags.CREATOR)
 public interface MvpView {
     /** Returns NULL if predicate returns False. */
     @AutoProxy.Yield(Returns.NULL)

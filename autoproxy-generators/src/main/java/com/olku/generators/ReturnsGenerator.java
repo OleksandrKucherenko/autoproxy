@@ -1,10 +1,11 @@
 package com.olku.generators;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.olku.annotations.Returns;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
-
-import androidx.annotation.NonNull;
 
 /** Compose return types for boolean. */
 public class ReturnsGenerator implements ReturnsPoet {
@@ -14,7 +15,7 @@ public class ReturnsGenerator implements ReturnsPoet {
     }
 
     public boolean compose(@NonNull final Type returnType,
-                           @NonNull @Returns final String type,
+                           @Nullable @Returns final String type,
                            @NonNull final MethodSpec.Builder builder) {
         // empty string
         if (Returns.EMPTY.equals(type)) {
@@ -37,6 +38,13 @@ public class ReturnsGenerator implements ReturnsPoet {
         // implement direct call with ignore of predicate result
         if (Returns.DIRECT.equals(type)) {
             builder.addComment("direct call, ignore predicate result");
+            return true;
+        }
+
+        // Builders support, return instance for chained calls
+        if (Returns.THIS.equals(type)) {
+            builder.addComment("return current instance");
+            builder.addStatement("return ($T)this", returnType);
             return true;
         }
 

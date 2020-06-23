@@ -1,13 +1,14 @@
 package com.olku.generators;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.olku.annotations.RetNumber;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
 import java.util.Map;
 import java.util.TreeMap;
-
-import androidx.annotation.NonNull;
 
 /** Compose return types for boolean. */
 public class RetNumberGenerator implements ReturnsPoet {
@@ -29,7 +30,7 @@ public class RetNumberGenerator implements ReturnsPoet {
     }
 
     public boolean compose(@NonNull final Type returnType,
-                           @NonNull @RetNumber final String type,
+                           @Nullable @RetNumber final String type,
                            @NonNull final MethodSpec.Builder builder) {
         final Class<?> output = PRIMITIVES.get(returnType.toString());
 

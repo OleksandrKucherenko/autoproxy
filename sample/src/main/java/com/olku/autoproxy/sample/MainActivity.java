@@ -6,8 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 
 import rx.Observable;
@@ -23,12 +21,13 @@ public class MainActivity extends AppCompatActivity implements MvpView {
 
     @NonNull
     public MvpView getProxy() {
-        return new Proxy_MvpView(this) {
-            @Override
-            public boolean predicate(@Methods @NotNull String methodName, Object... args) {
-                return !isFinishing();
-            }
-        };
+        return Proxy_MvpView.create(this, (methodName, args) -> !isFinishing());
+//        return new Proxy_MvpView(this) {
+//            @Override
+//            public boolean predicate(@M @NonNull String methodName, Object... args) {
+//                return !isFinishing();
+//            }
+//        };
     }
 
     //region View interface
