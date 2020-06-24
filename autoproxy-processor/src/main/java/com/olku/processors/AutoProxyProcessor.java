@@ -87,7 +87,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
 
             TypeProcessor tp = null;
             try {
-                tp = new TypeProcessor(element, logger);
+                tp = new TypeProcessor(element, logger, processingEnv);
                 tp.extractMethods(typesUtil);
 
                 if (IS_DEBUG) logger.printMessage(NOTE, tp.toString());
@@ -111,7 +111,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
             final long end = System.nanoTime();
             if (!IS_DEBUG) {
                 logger.printMessage(NOTE, (null != tp ? tp.toShortString() : "TypeProcessor FAILED!") +
-                        " takes: " + TimeUnit.NANOSECONDS.toMillis(end - now) + "ms\n");
+                        " takes: " + TimeUnit.NANOSECONDS.toMillis(end - now) + "ms\r\n");
             }
         }
 

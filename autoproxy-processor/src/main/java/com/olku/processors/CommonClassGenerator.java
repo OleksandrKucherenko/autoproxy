@@ -136,7 +136,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return true;
     }
 
-    /** Compose Plain logic without exception handling wrapper. */
+    /**
+     * Compose Plain logic without exception handling wrapper.
+     *
+     * @param filer instance needed for file creation.
+     */
     protected void composeInternal(@NonNull Filer filer) throws Exception {
         // is generation flag for forced afterCall set
         final boolean hasAfterCalls = ((this.type.annotation.flags() & Flags.AFTER_CALL) == Flags.AFTER_CALL);
@@ -208,11 +212,17 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     protected FieldSpec[] createMembers() {
         final List<FieldSpec> fields = new ArrayList<>();
 
-        final TypeName typeOfField = TypeName.get(type.element.asType());
+        final TypeName typeOfField = getSuperTypeName();
         final FieldSpec.Builder builder = FieldSpec.builder(typeOfField, "inner", Modifier.PROTECTED, Modifier.FINAL);
         fields.add(builder.build());
 
         return fields.toArray(new FieldSpec[0]);
+    }
+
+    /** Get supper type that should be used as a inner instance data type. */
+    @NonNull
+    private TypeName getSuperTypeName() {
+        return this.type.getAnnotationSuperTypeAsTypeName();
     }
 
     @NonNull
@@ -278,7 +288,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     @NonNull
     protected MethodSpec.Builder createConstructor() {
-        final ParameterSpec.Builder param = ParameterSpec.builder(superType, "instance", Modifier.FINAL)
+        final TypeName innerMemberSuperType = getSuperTypeName();
+        final ParameterSpec.Builder param = ParameterSpec.builder(innerMemberSuperType, "instance", Modifier.FINAL)
                 .addAnnotation(NonNull.class);
 
         final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
@@ -369,7 +380,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
-    /** Special static method for simplified class instance creation. */
+    /**
+     * Special static method for simplified class instance creation.
+     *
+     * @return static method builder
+     */
     @NonNull
     protected MethodSpec.Builder createCreator() {
 //  Output:
@@ -392,7 +407,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         copyMethodGenericVariables(builder);
         builder.returns(superType);
 
-        builder.addParameter(superType, "instance", Modifier.FINAL);
+        final TypeName innerMemberType = getSuperTypeName();
+        builder.addParameter(innerMemberType, "instance", Modifier.FINAL);
 //        builder.addParameter(ParameterizedTypeName.get(Func2.class, String.class, Object[].class, Boolean.class), "action", Modifier.FINAL);
         builder.addParameter(ParameterizedTypeName.get(BiFunction.class, String.class, Object[].class, Boolean.class), "action", Modifier.FINAL);
         builder.addJavadoc(BI_FUNCTION_FIX);
@@ -595,7 +611,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
             if (null != yield) builder.addComment("" + yield);
             createYieldPart(builder, returnType, yield);
         } else {
-            builder.addStatement("return");
+            // line should correspond default value of AutoProxy.Yield.value() == Returns.THROWS
+            builder.addStatement("throw new $T($S)", UnsupportedOperationException.class, "cannot resolve return value.");
         }
 
         builder.endControlFlow();
@@ -612,7 +629,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
                         methodName, arguments);
             } else {
                 builder.addStatement("this.inner.$N($L)", methodName, arguments);
-                builder.addStatement("$L($S, null)", AFTER_CALL, uniqueMethodName);
+                builder.addStatement("$L($L.$L, null)", AFTER_CALL,
+                        METHODS, toConstantName(uniqueMethodName));
             }
         }
 

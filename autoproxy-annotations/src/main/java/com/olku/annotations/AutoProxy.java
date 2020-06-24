@@ -24,8 +24,23 @@ public @interface AutoProxy {
     /** Default Yield return policy. */
     String defaultYield() default Returns.THROWS;
 
+    /** Class used as a inner variable type. By default will be used annotated class/interface type. */
+    Class<?> innerType() default Defaults.class;
+
     /** Represents DEFAULT class generator. CommonClassGenerator class in processors module. */
     abstract class Common implements AutoProxyClassGenerator {
+    }
+
+    /** Represents DEFAULT inner data type value. */
+    abstract class Defaults {
+        /** Name of the annotation method {@link #innerType()}. */
+        /* package */ static final String INNER_TYPE = "innerType";
+        /** Name of the annotation method {@link #defaultYield()}. */
+        /* package */ static final String DEFAULT_YIELD = "defaultYield";
+        /** Name of the annotation method {@link #flags()}. */
+        /* package */ static final String FLAGS = "flags";
+        /** Name of the annotation method {@link #value()}. */
+        /* package */ static final String VALUE = "value";
     }
 
     /** Customize return value of the method if call was canceled by predicate. Only for PUBLIC methods. */
@@ -86,10 +101,11 @@ public @interface AutoProxy {
         public static Map<String, Object> asMap() {
             final Map<String, Object> map = new HashMap<>();
 
-            // map field name to default value
-            map.put("value", Common.class);
-            map.put("flags", AutoProxy.Flags.NONE);
-            map.put("defaultYield", Returns.THROWS);
+            // map field/method name of annotation to it default value
+            map.put(Defaults.VALUE, Common.class);
+            map.put(Defaults.FLAGS, AutoProxy.Flags.NONE);
+            map.put(Defaults.DEFAULT_YIELD, Returns.THROWS);
+            map.put(Defaults.INNER_TYPE, Defaults.class);
 
             return map;
         }

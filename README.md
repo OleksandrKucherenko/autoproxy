@@ -420,6 +420,38 @@ Outputs:
   }
 ```
 
+## Usage patterns
+
+### Mimic final class interface
+
+Can be used for decoupling the code implementation from system (or 3rd party) final class that
+is impossible to mock or fake.
+
+```java
+/** Step 0: identify final class for proxy */
+public final class FinalClass {
+    final void dummyCall() { /* do something */ }
+
+    final boolean returnBoolean() { /* do something */ }
+}
+
+/** Step 1: create interface with all needed methods that we will need. */
+@AutoProxy(innerType = FinalClass.class, flags = AutoProxy.Flags.ALL)
+public interface MimicFinalClass {
+  /* declare methods of final class that you plan to use.
+     Annotate each method by AutoProxy.Yield customization */
+}
+
+/** Step 2: replace usage of FinalClass by MimicFinalClass in code. */
+
+/** Step 3: Compose instance of proxy. */
+@NonNull
+static MimicFinalClass proxy(FinalClass instance) {
+    // simplest way to forward all to inner instance
+    return Proxy_MimicFinalClass.create(instance, (m, args) -> true);
+}
+```
+
 # Troubles
 
 http://www.vogella.com/tutorials/GitSubmodules/article.html
@@ -497,6 +529,10 @@ Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than 
 - [x] static `create` method that allows proxy creation with use of lambda
 - [x] `dispatchByName` method that calls specific inner instance method with provided parameters
 - [x] customization auto-generation flags, configure demands to helper code
+- [ ] customize Prefix of generated class "Proxy_" can be replaced by "Fake_" or "Stub_"
+- [x] Proxy for final classes
+- [ ] Allow Mutable inner instance, replace instance in runtime for proxy
+- [ ] Yield predicate with customizable return (lambda expression)
 - [ ] Add Support for RxJava v2
 - [ ] Add Support for Kotlin language (generate code in Kotlin)
 - [ ] Add Support for RxJava v3

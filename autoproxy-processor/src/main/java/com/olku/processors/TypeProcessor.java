@@ -5,6 +5,8 @@ import androidx.annotation.Nullable;
 
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
+import com.olku.annotations.AutoProxyHelper;
+import com.squareup.javapoet.TypeName;
 import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -14,9 +16,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -44,6 +48,8 @@ public class TypeProcessor {
     final AutoProxy annotation;
     final Messager logger;
     final ArrayList<Element> methods;
+    final ProcessingEnvironment pe;
+    final Attribute.Compound annotationMirror;
 
     /**
      * Main constructor.
@@ -51,20 +57,23 @@ public class TypeProcessor {
      * @param element reference on code element that we process now.
      * @param logger  instance of logger for debug information
      */
-    public TypeProcessor(@NonNull final Element element, @NonNull final Messager logger) {
+    public TypeProcessor(@NonNull final Element element,
+                         @NonNull final Messager logger,
+                         @NonNull final ProcessingEnvironment pe) {
         this.element = element;
         this.logger = logger;
+        this.pe = pe;
 
         elementName = element.getSimpleName();
         flatClassName = flatName(element);
 
         final Symbol.PackageSymbol packageInfo = (Symbol.PackageSymbol) findPackage(element);
-        packageName = packageInfo.getQualifiedName();
-        elementType = element.asType();
+        this.packageName = packageInfo.getQualifiedName();
+        this.elementType = element.asType();
 
-        final Attribute.Compound ap = findAutoProxy(element.getAnnotationMirrors());
-        this.annotation = extractAnnotation(ap);
-        methods = new ArrayList<>();
+        this.annotationMirror = findAutoProxy(element.getAnnotationMirrors());
+        this.annotation = extractAnnotation(annotationMirror);
+        this.methods = new ArrayList<>();
     }
 
     /**
@@ -230,7 +239,8 @@ public class TypeProcessor {
     @NonNull
     private AutoProxy extractAnnotation(@Nullable final Attribute.Compound annotation) {
         // extract default values, https://stackoverflow.com/questions/16299717/how-to-create-an-instance-of-an-annotation
-        if (IS_DEBUG) logger.printMessage(NOTE, "extracting: " + (null != annotation ? annotation.toString() : "NULL"));
+        if (IS_DEBUG)
+            logger.printMessage(NOTE, "extracting: " + (null != annotation ? annotation.toString() : "NULL"));
 
         // default values of AutoProxy
         final Map<String, Object> map = AutoProxy.DefaultAutoProxy.asMap();
@@ -239,14 +249,18 @@ public class TypeProcessor {
         if (null != annotation) {
             for (final Map.Entry<Symbol.MethodSymbol, Attribute> entry : annotation.getElementValues().entrySet()) {
                 final String key = entry.getKey().name.toString();
+                if (AutoProxyHelper.INNER_TYPE.equals(key)) continue; // skip "innerType" method
+
                 Object value = entry.getValue().getValue();
 
                 if (value instanceof Type.ClassType) {
                     final Name name = ((Type.ClassType) value).asElement().getQualifiedName();
 
                     try {
+//                        final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+//                        value = Class.forName(name.toString(), true, systemClassLoader);
                         value = Class.forName(name.toString());
-                    } catch (ClassNotFoundException e) {
+                    } catch (Throwable e) {
                         throw new RuntimeException("Cannot extract class information. " + name, e);
                     }
                 }
@@ -257,5 +271,37 @@ public class TypeProcessor {
 
         // new instance
         return (AutoProxy) AnnotationParser.annotationForMap(AutoProxy.class, map);
+    }
+
+    /** Get supper type that should be used as a inner instance data type. */
+    public TypeName getAnnotationSuperTypeAsTypeName() {
+        final String defaultValue = AutoProxyHelper.DEFAULTS_NAME;
+        final TypeName defaultSuperType = TypeName.get(element.asType());
+
+        final Optional<Map.Entry<Symbol.MethodSymbol, Attribute>> found = this.annotationMirror
+                .getElementValues()
+                .entrySet()
+                .stream()
+                .filter(entry -> AutoProxyHelper.INNER_TYPE.equals(entry.getKey().name.toString()))
+                .findFirst();
+
+        // no overrides -> use defaults
+        if (!found.isPresent()) return defaultSuperType;
+
+        // get Class<?>
+        final Map.Entry<Symbol.MethodSymbol, Attribute> entry = found.get();
+        final Object rawValue = entry.getValue().getValue();
+        final Type.ClassType classType = (Type.ClassType) rawValue;
+        final Name name = classType.asElement().getQualifiedName();
+        final TypeElement te = this.pe.getElementUtils().getTypeElement(name.toString());
+        final String foundSuperTypeClassName = te.getQualifiedName().toString();
+
+        // found default value
+        if (defaultValue.equals(foundSuperTypeClassName)) return defaultSuperType;
+
+        if (IS_DEBUG) logger.printMessage(NOTE, "used superType: " + foundSuperTypeClassName + "\r\n");
+
+        // use custom provided class as a "Super Type"
+        return TypeName.get(te.asType());
     }
 }
