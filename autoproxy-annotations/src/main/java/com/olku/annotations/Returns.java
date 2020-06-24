@@ -6,11 +6,9 @@ import java.lang.annotation.Retention;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
-/**
- * Created by alexk on 10/1/2017.
- */
+/** Different types of return's.  */
 @Retention(SOURCE)
-@StringDef({Returns.EMPTY, Returns.THROWS, Returns.NULL})
+@StringDef({Returns.EMPTY, Returns.THROWS, Returns.NULL, Returns.DIRECT, Returns.THIS, Returns.SKIP, Returns.EXIT})
 public @interface Returns {
     /** Return empty string as a result. */
     String EMPTY = "empty";
@@ -22,6 +20,10 @@ public @interface Returns {
     String DIRECT = "direct";
     /** Default value is reference on current instance. */
     String THIS = "this";
+    /** Skip inner call. `afterCall` call will be used for return composing. */
+    String SKIP = "skipped";
+    /** Just do the exit from method call. */
+    String EXIT = "exit";
 }
 
 

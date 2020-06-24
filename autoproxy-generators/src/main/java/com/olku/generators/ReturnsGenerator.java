@@ -41,10 +41,22 @@ public class ReturnsGenerator implements ReturnsPoet {
             return true;
         }
 
+        // implement skipped call with ignore of predicate result
+        if (Returns.SKIP.equals(type)) {
+            builder.addComment("skipped call, ignore predicate result. afterCall will be used for return composing.");
+            return true;
+        }
+
         // Builders support, return instance for chained calls
         if (Returns.THIS.equals(type)) {
             builder.addComment("return current instance");
             builder.addStatement("return ($T)this", returnType);
+            return true;
+        }
+
+        if (Returns.EXIT.equals(type)) {
+            builder.addComment("do exit from method call");
+            builder.addStatement("return");
             return true;
         }
 

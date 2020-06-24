@@ -1,8 +1,9 @@
 package com.olku.autoproxy.sample;
 
-import org.junit.*;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by developer on 12/20/17.
