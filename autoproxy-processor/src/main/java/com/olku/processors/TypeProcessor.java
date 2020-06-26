@@ -55,7 +55,8 @@ public class TypeProcessor {
      * Main constructor.
      *
      * @param element reference on code element that we process now.
-     * @param logger  instance of logger for debug information
+     * @param logger  instance of logger for debug information.
+     * @param pe      reference on processing environment instance for resolving types.
      */
     public TypeProcessor(@NonNull final Element element,
                          @NonNull final Messager logger,
@@ -273,7 +274,11 @@ public class TypeProcessor {
         return (AutoProxy) AnnotationParser.annotationForMap(AutoProxy.class, map);
     }
 
-    /** Get supper type that should be used as a inner instance data type. */
+    /**
+     * Get supper type that should be used as a inner instance data type.
+     *
+     * @return extracted type name
+     */
     public TypeName getAnnotationSuperTypeAsTypeName() {
         final String defaultValue = AutoProxyHelper.DEFAULTS_NAME;
         final TypeName defaultSuperType = TypeName.get(element.asType());
@@ -299,7 +304,8 @@ public class TypeProcessor {
         // found default value
         if (defaultValue.equals(foundSuperTypeClassName)) return defaultSuperType;
 
-        if (IS_DEBUG) logger.printMessage(NOTE, "used superType: " + foundSuperTypeClassName + "\r\n");
+        if (IS_DEBUG)
+            logger.printMessage(NOTE, "used superType: " + foundSuperTypeClassName + "\r\n");
 
         // use custom provided class as a "Super Type"
         return TypeName.get(te.asType());

@@ -452,6 +452,54 @@ static MimicFinalClass proxy(FinalClass instance) {
 }
 ```
 
+### Side effects
+
+[![Chained Side Effects](https://i.imgur.com/akZIN6jl.png)](https://imgur.com/akZIN6j)
+
+```java
+/** Step #0: Create class declaration */
+@AutoProxy(flags = AutoProxy.Flags.CREATE)
+public abstract class MyClass {
+  // Default AutoProxy behavior is THROW exception when predicate() returns FALSE
+  void firstMethod();
+
+  @AutoProxy.Yield(RetBool.FALSE)
+  boolean secondMethod();
+}
+
+/** Step #1: Compose side effect */
+static MyClass withLogging(MyClass instance) {
+  return Proxy_MyClass.create(instance, (m, args) -> {
+      Log.i("Called method: " + m + "with args: " + Arrays.toString(args));
+      return true;
+    });
+}
+
+/** Step #2: Another side effect */
+static MyClass withFailFirstMethod(MyClass instance) {
+  return Proxy_MyClass.create(instance, (m, args) -> {
+    return (!M.FIRSTMETHOD.equals(m));
+  });
+}
+
+/** Step #3: Another side effect */
+static MyClass withFalseSecondMethod(MyClass instance) {
+  return Proxy_MyClass.create(instance, (m, args) -> {
+    return (M.SECONDMETHOD.equals(m) ? false : true);
+  });
+}
+
+/* Usage of chain. */
+final MyClass instance = 
+  withLogging(
+    withFailFirstMethod(
+      withFalseSecondMethod(
+        new MyClassImpl()
+  )));
+
+/* ... Use instance in code ... */    
+```
+
 # Troubles
 
 http://www.vogella.com/tutorials/GitSubmodules/article.html

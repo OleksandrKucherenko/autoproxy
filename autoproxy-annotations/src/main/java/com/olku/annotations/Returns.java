@@ -8,7 +8,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /** Different types of return's.  */
 @Retention(SOURCE)
-@StringDef({Returns.EMPTY, Returns.THROWS, Returns.NULL, Returns.DIRECT, Returns.THIS, Returns.SKIP, Returns.EXIT})
+@StringDef({Returns.EMPTY, Returns.THROWS, Returns.NULL, Returns.DIRECT, Returns.THIS, Returns.SKIP})
 public @interface Returns {
     /** Return empty string as a result. */
     String EMPTY = "empty";
@@ -22,8 +22,6 @@ public @interface Returns {
     String THIS = "this";
     /** Skip inner call. `afterCall` call will be used for return composing. */
     String SKIP = "skipped";
-    /** Just do the exit from method call. */
-    String EXIT = "exit";
 }
 
 
