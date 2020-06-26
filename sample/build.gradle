@@ -80,16 +80,21 @@ dependencies {
     implementation "androidx.appcompat:appcompat:${supportVersion}"
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
-    /* RxJava - https://github.com/ReactiveX/RxAndroid */
+    /* RxJava 1.xx - https://github.com/ReactiveX/RxAndroid */
     implementation "io.reactivex:rxandroid:1.2.1"
     implementation "io.reactivex:rxjava:1.3.8"
+
+    /* RxJava 2.xx - https://github.com/ReactiveX/RxJava/tree/2.x */
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
 
     /* AutoProxy generator */
     compileOnly project(':autoproxy-annotations')
     compileOnly project(':autoproxy-rx-annotations')
     compileOnly project(':autoproxy-rx-generators')
+    compileOnly project(':autoproxy-rx2-generators')
 
     kapt project(':autoproxy-rx-generators')
+    kapt project(':autoproxy-rx2-generators')
     kapt project(':autoproxy-processor')
 
     /* AutoValue, https://github.com/google/auto */
@@ -108,6 +113,9 @@ dependencies {
 
     /* Unit test */
     testImplementation "junit:junit:${junitVersion}"
+
+    /* Mockito, https://github.com/mockito/mockito */
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 }
 
 kapt {

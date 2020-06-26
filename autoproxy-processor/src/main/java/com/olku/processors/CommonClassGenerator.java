@@ -140,6 +140,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
      * Compose Plain logic without exception handling wrapper.
      *
      * @param filer instance needed for file creation.
+     * @throws Exception for simplifying try/catch in code
      */
     protected void composeInternal(@NonNull Filer filer) throws Exception {
         // is generation flag for forced afterCall set
@@ -478,7 +479,11 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
-    /** Compose inner interface with all method names. */
+    /**
+     * Compose inner interface with all method names.
+     *
+     * @return annotation builder that contains all found methods names.
+     */
     @NonNull
     protected TypeSpec.Builder createMethodsMapper() {
         final TypeSpec.Builder builder = TypeSpec.annotationBuilder(METHODS)
@@ -559,7 +564,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return result.toString();
     }
 
-    /** Create override method of the proxy class. */
+    /**
+     * Create override method of the proxy class.
+     *
+     * @param ms instance of method description.
+     * @return method build that allows some modification before build()
+     * @throws Exception for simplifying errors handling in class
+     */
     @NonNull
     protected MethodSpec.Builder createMethod(final Symbol.MethodSymbol ms) throws Exception {
 // Output:
@@ -617,21 +628,27 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         builder.endControlFlow();
 
+        final AutoProxy.Yield annotation = extractYield(yield);
+        final boolean hasSkipped = Returns.SKIP.equals(annotation.value());
+
         // generate return
-        if (null == after) {
+        if (null == after && !hasSkipped) { // no afterCall
             builder.addStatement((hasReturn ? "return " : "") + "this.inner.$N($L)", methodName, arguments);
         } else {
             isAnyAfterCalls.set(true);
 
-            if (hasReturn) {
-                builder.addStatement("return $L($L.$L, this.inner.$N($L))", AFTER_CALL,
-                        METHODS, toConstantName(uniqueMethodName),
-                        methodName, arguments);
+            if (hasSkipped) {
+                builder.addStatement("final $T forAfterCall = null", returnType);
+            } else if (hasReturn) {
+                builder.addStatement("final $T forAfterCall = this.inner.$N($L)",
+                        returnType, methodName, arguments);
             } else {
+                builder.addStatement("final $T forAfterCall = null", Object.class);
                 builder.addStatement("this.inner.$N($L)", methodName, arguments);
-                builder.addStatement("$L($L.$L, null)", AFTER_CALL,
-                        METHODS, toConstantName(uniqueMethodName));
             }
+
+            builder.addStatement((hasReturn ? "return " : "") + "$L($L.$L, forAfterCall)",
+                    AFTER_CALL, METHODS, toConstantName(uniqueMethodName));
         }
 
         return builder;
@@ -674,7 +691,13 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return null;
     }
 
-    /** Compose default value return if proxy do not allows call to inner instance. */
+    /**
+     * Compose default value return if proxy do not allows call to inner instance.
+     *
+     * @param builder    method builder instance.
+     * @param returnType expected return type of method.
+     * @param yield      annotation that specify return value.
+     */
     protected void createYieldPart(@NonNull final MethodSpec.Builder builder,
                                    @NonNull final Type returnType,
                                    @Nullable final Attribute.Compound yield) throws Exception {

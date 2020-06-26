@@ -17,6 +17,28 @@ public class MainActivity extends AppCompatActivity implements MvpView {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        final RxJava1Sample instance = null /* ... */;
+        final RxJava1Sample proxy = new Proxy_RxJava1Sample(instance) {
+            @Override
+            public boolean predicate(@NonNull String methodName, Object... args) {
+                return true;
+            }
+
+            @Override
+            public <T> T afterCall(@NonNull String methodName, T result) {
+                if (M.CHAINEDCALLSKIP.equals(methodName)) {
+                    return (T) computeSomething();
+                }
+
+                return result;
+            }
+        };
+        assert false == proxy.chainedCallSkip();
+    }
+
+    private Boolean computeSomething() {
+        return false;
     }
 
     @NonNull

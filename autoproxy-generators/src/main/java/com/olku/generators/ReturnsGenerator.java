@@ -54,12 +54,6 @@ public class ReturnsGenerator implements ReturnsPoet {
             return true;
         }
 
-        if (Returns.EXIT.equals(type)) {
-            builder.addComment("do exit from method call");
-            builder.addStatement("return");
-            return true;
-        }
-
         return false;
     }
 

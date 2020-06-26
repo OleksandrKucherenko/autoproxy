@@ -7,22 +7,21 @@ import com.olku.annotations.RetRx;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
-import rx.Completable;
-import rx.Observable;
-import rx.Single;
+import io.reactivex.*;
 
 /** RxJava return values generator. */
-public class RetRxGenerator implements ReturnsPoet {
+public class RetRx2Generator implements ReturnsPoet {
     /** Base classes supported by rxJava v2.xx */
     private static final Class<?>[] BASE_CLASSES = {
+            Flowable.class,
             Observable.class,
             Single.class,
             Completable.class,
+            Maybe.class
     };
 
-
     @NonNull
-    public static RetRxGenerator getInstance() {
+    public static RetRx2Generator getInstance() {
         return Singleton.INSTANCE;
     }
 
@@ -30,15 +29,16 @@ public class RetRxGenerator implements ReturnsPoet {
                            @Nullable @RetRx final String type,
                            @NonNull final MethodSpec.Builder builder) {
         final Class<?> rxType = resolveReturnType(returnType);
-        final String generics = extractGenericsFromReturnType(returnType);
 
         if (RetRx.EMPTY.equals(type)) {
-            //  rx.Observable.empty();
+            //    io.reactivex.Flowable.empty();
+            //    io.reactivex.Observable.empty();
+            //    io.reactivex.Single.fromObservable(Observable.empty()); == io.reactivex.Single.error(...)
+            //    io.reactivex.Completable.fromObservable(Observable.empty()); == io.reactivex.Completable.complete();
+            //    io.reactivex.Maybe.empty();
             if (rxType.isAssignableFrom(Single.class)) {
-                // return Observable.<Boolean>empty().toSingle();
-
                 builder.addComment("will be equivalent to: `io.reactivex.Single.error(...)`");
-                builder.addStatement("return $T.<$L>empty().toSingle()", Observable.class, generics);
+                builder.addStatement("return $T.fromObservable($T.empty())", rxType, Observable.class);
             } else if (rxType.isAssignableFrom(Completable.class)) {
                 builder.addComment("will be equivalent to: `io.reactivex.Completable.complete()`");
                 builder.addStatement("return $T.fromObservable($T.empty())", rxType, Observable.class);
@@ -49,7 +49,11 @@ public class RetRxGenerator implements ReturnsPoet {
         }
 
         if (RetRx.ERROR.equals(type)) {
-            //  rx.Observable.error(new UnsupportedOperationException("unsupported method call"));
+            //    io.reactivex.Flowable.error(new UnsupportedOperationException("unsupported method call"));
+            //    io.reactivex.Observable.error(new UnsupportedOperationException("unsupported method call"));
+            //    io.reactivex.Single.error(new UnsupportedOperationException("unsupported method call"));
+            //    io.reactivex.Completable.error(new UnsupportedOperationException("unsupported method call"));
+            //    io.reactivex.Maybe.error(new UnsupportedOperationException("unsupported method call"));
             builder.addStatement("return $T.error(new $T($S))",
                     rxType,
                     UnsupportedOperationException.class,
@@ -59,39 +63,16 @@ public class RetRxGenerator implements ReturnsPoet {
         }
 
         if (RetRx.NEVER.equals(type)) {
-            //  rx.Observable.never();
-            //  Observable.<Boolean>never().toSingle();
-            if(rxType.isAssignableFrom(Single.class)){
-                builder.addStatement("return $T.<$L>never().toSingle()", Observable.class, generics);
-            } else {
-                builder.addStatement("return $T.never()", rxType);
-            }
+            //    io.reactivex.Flowable.never();
+            //    io.reactivex.Observable.never();
+            //    io.reactivex.Single.never();
+            //    io.reactivex.Completable.never();
+            //    io.reactivex.Maybe.never();
+            builder.addStatement("return $T.never()", rxType);
             return true;
         }
 
         return false;
-    }
-
-    @SuppressWarnings("NewApi")
-    @NonNull
-    /* package */ static String extractGenericsFromReturnType(@NonNull final Type returnType) {
-        final String returnTypeName = returnType.toString();
-        final String[] parts = returnTypeName.split("<");
-
-        final StringBuilder result = new StringBuilder();
-        String prefix = "";
-        for (int i = 1, len = parts.length; i < len; i++) {
-            final String part = parts[i].trim()
-                    .replaceAll("[ \\t]*<[ \\t]*", "<")
-                    .replaceAll("[ \\t]*>[ \\t]*", ">")
-                    .replaceAll("[ \\t]*,[ \\t]*", ", ");
-            final String element = (i == len - 1 && part.endsWith(">")) ?
-                    part.substring(0, part.length() - 1) : part;
-            result.append(prefix).append(element);
-            prefix = "<";
-        }
-
-        return result.toString();
     }
 
     @NonNull
@@ -113,6 +94,6 @@ public class RetRxGenerator implements ReturnsPoet {
     }
 
     private static final class Singleton {
-        /* package */ static final RetRxGenerator INSTANCE = new RetRxGenerator();
+        /* package */ static final RetRx2Generator INSTANCE = new RetRx2Generator();
     }
 }

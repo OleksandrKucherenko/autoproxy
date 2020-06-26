@@ -1,4 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
+
+# MacOS files
+.DS_Store
+
 ### Android template
 # Built application files
 *.apk
