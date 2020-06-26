@@ -1,4 +1,4 @@
-# AutoProxy
+# 1. AutoProxy
 
 [![Build Status](https://travis-ci.org/OleksandrKucherenko/autoproxy.svg?branch=master)](https://travis-ci.org/OleksandrKucherenko/autoproxy)
 [ ![Download](https://api.bintray.com/packages/kucherenko-alex/android/com.olku%3Aautoproxy/images/download.svg) ](https://bintray.com/kucherenko-alex/android/com.olku%3Aautoproxy/_latestVersion)
@@ -11,13 +11,46 @@ Also known as a design pattern: proxy, delegate, interceptor.
 
 [![Diagram](https://i.imgur.com/vvgUtw7h.png)](https://imgur.com/vvgUtw7)
 
-UML PROXY PATTERN:
+<details>
+<summary>UML PROXY PATTERN:</summary>
+
+[Wikipedia Proxy Pattern](https://en.wikipedia.org/wiki/Proxy_pattern)
 
 [![Proxy Pattern](https://i.imgur.com/EYDGCB1h.png)](https://imgur.com/EYDGCB1)
+</details>
 
-# Why should I use it?
+- [1. AutoProxy](#1-autoproxy)
+- [2. Why should I use it?](#2-why-should-i-use-it)
+  - [2.1. Use Cases](#21-use-cases)
+- [3. Concepts](#3-concepts)
+  - [3.1. Predicate](#31-predicate)
+  - [3.2. AfterCall](#32-aftercall)
+- [4. Setup Guide](#4-setup-guide)
+  - [4.1. Configure Dependencies](#41-configure-dependencies)
+  - [4.2. Make Proxy Class Specification](#42-make-proxy-class-specification)
+  - [4.3. Usage in project (aka usage with Dagger)](#43-usage-in-project-aka-usage-with-dagger)
+  - [4.4. Customization of Generated Code](#44-customization-of-generated-code)
+- [5. Advanced Usage (Patterns)](#5-advanced-usage-patterns)
+  - [5.1. Mimic final class interface](#51-mimic-final-class-interface)
+  - [5.2. Side effects](#52-side-effects)
+  - [5.3. Runtime defined output value](#53-runtime-defined-output-value)
+    - [5.3.1. Skip Inner Class Call and Simple Return](#531-skip-inner-class-call-and-simple-return)
+    - [5.3.2. Skip Inner Class Call and Return Self Reference](#532-skip-inner-class-call-and-return-self-reference)
+  - [5.4. Customize Yield Return Types (Custom return type adapter)](#54-customize-yield-return-types-custom-return-type-adapter)
+  - [5.5. Decouple MVP pattern (inject mediator)](#55-decouple-mvp-pattern-inject-mediator)
+  - [5.6. Compose FAKE class](#56-compose-fake-class)
+- [6. Troubles](#6-troubles)
+  - [6.1. Reset submodule to remote repository version](#61-reset-submodule-to-remote-repository-version)
+  - [6.2. Enable Tracing](#62-enable-tracing)
+  - [6.3. How to Debug?](#63-how-to-debug)
+  - [6.4. How to Change/Generate GPG signing key?](#64-how-to-changegenerate-gpg-signing-key)
+  - [6.5. How to Publish?](#65-how-to-publish)
+- [7. Roadmap](#7-roadmap)
+- [8. License](#8-license)
 
-## Use Cases
+# 2. Why should I use it?
+
+## 2.1. Use Cases
 
 1. create proxy class that ignore all calls till UI is in a right lifecycle state; Library solves common Mvp View problem: call of view from presenter when
 view is already detached from Activity. (delayed updated call)
@@ -29,13 +62,14 @@ view is already detached from Activity. (delayed updated call)
 
 Library gives a bigger freedom if you think for a second about it:
 
-- auto-generated Proxy class is simple and does not have any performance impacts. No Reflection. All resolved during the compilation time. Survive ProGuard optimization/obfuscation. 
+- auto-generated Proxy class is simple and does not have any performance impacts. No Reflection. All resolved during the compilation time. 
+- Survive ProGuard optimization/obfuscation. 
 - used in library approach allows custom generators of code/results. Unknown types is super easy to support.
-- Allows to decouple main application business logic from different side-effects and dependencies
+- Allows to decouple main application business logic from different side-effects and dependencies (mediator injecting in code)
 
-# Concepts
+# 3. Concepts
 
-## Predicate
+## 3.1. Predicate
 
 Intercept call before the inner instance call. If returns TRUE, than allowed inner instance call.
 On FALSE developer should decide what to do. Default behavior: throw exception.
@@ -50,10 +84,14 @@ On FALSE developer should decide what to do. Default behavior: throw exception.
   }
 ```
 
-## AfterCall
+## 3.2. AfterCall
 
-From time to time exists situations when we need to intercept and modify results of inner call.
-In that case library provides `@AutoProxy.AfterCall` annotation.
+From time to time exists situations when we need to intercept and modify results of the inner call.
+
+In that case library provides `@AutoProxy.AfterCall` annotation, it allows to mark specific method that requires this feature. `@AutoProxy(flags = AutoProxy.Flags.AFTER_CALL)` enables that for all methods in class/interface.
+
+<details>
+<summary>AutoValue Builder Sample</summary>
 
 Declaration:
 
@@ -65,10 +103,6 @@ public abstract class ParkingArea {
     @AutoValue.Builder
     @AutoProxy
     public static abstract class Builder {
-
-        @AutoProxy.AfterCall
-        public abstract ParkingArea build();
-
         @AutoProxy.AfterCall
         @NonNull
         public abstract Builder id(final long id);
@@ -89,6 +123,7 @@ public abstract class Proxy_ParkingArea$Builder extends ParkingArea.Builder {
   /* ... other methods ... */
 }
 ```
+</details>
 
 Change of internal proxy pattern:
 
@@ -100,35 +135,74 @@ Change of internal proxy pattern:
 
     return afterCall("build", this.inner.build());
   }
-
 ```
 
-# Usage
+# 4. Setup Guide
 
 You can use it as a submodule or as compiled libs.
 
-## Step #1 : configure dependency
+## 4.1. Configure Dependencies
 
 ```groovy
+/* include repository */
 repositories {
     maven {
         url  "https://dl.bintray.com/kucherenko-alex/android"
     }
 }
+```
 
+```groovy
+/* add dependencies */
 dependencies{
     /* AutoProxy generator */
     compileOnly 'com.olku:autoproxy-annotations:+'
     compileOnly 'com.olku:autoproxy-rx-annotations:+'
-    compileOnly 'com.olku:autoproxy-rx-generators:+'
+    compileOnly 'com.olku:autoproxy-rx2-generators:+'
 
     annotationProcessor 'com.olku:autoproxy-rx-generators:+'
+    annotationProcessor 'com.olku:autoproxy-processor:+'
+}
+```
+
+<details>
+<summary>With RxJava v1.xx Support</summary>
+
+```groovy
+/* add dependencies */
+dependencies{
+    /* AutoProxy generator */
+    compileOnly 'com.olku:autoproxy-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx-generators:+' /* RxJava v1.xx */
+
+    annotationProcessor 'com.olku:autoproxy-rx-generators:+' /* RxJava v1.xx */
     annotationProcessor 'com.olku:autoproxy-processor:+'
 
 }
 ```
 
-## Step #1.1 : OR attach as a submodule
+</details>
+
+<details>
+<summary>With RxJava v2.xx Support</summary>
+
+```groovy
+/* add dependencies */
+dependencies{
+    /* AutoProxy generator */
+    compileOnly 'com.olku:autoproxy-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx2-generators:+' /* RxJava v2.xx */
+
+    annotationProcessor 'com.olku:autoproxy-rx2-generators:+' /* RxJava v2.xx */
+    annotationProcessor 'com.olku:autoproxy-processor:+'
+}
+```
+</details>
+
+<details>
+<summary>OR attach as a submodule</summary>
 
 attach repository as a submodule:
 
@@ -143,7 +217,7 @@ git submodule add https://github.com/OleksandrKucherenko/autoproxy.git modules/a
 git submodule update --init --recursive
 ```
 
-## Step #1.2: include submodule into project
+include submodule into project
 
 `app/build.gradle`:
 
@@ -151,14 +225,17 @@ git submodule update --init --recursive
     /* AutoProxy generator */
     compileOnly project(':modules:autoproxy:autoproxy-annotations')
     compileOnly project(':modules:autoproxy:autoproxy-rx-annotations')
-    compileOnly project(':modules:autoproxy:autoproxy-rx-generators')
+    compileOnly project(':modules:autoproxy:autoproxy-rx-generators') /* RxJava v1.xx */
+    compileOnly project(':modules:autoproxy:autoproxy-rx2-generators') /* RxJava v2.xx */
 
     /* For Java Projects */
-    annotationProcessor project(':modules:autoproxy:autoproxy-rx-generators')
+    annotationProcessor project(':modules:autoproxy:autoproxy-rx-generators') /* RxJava v1.xx */
+    annotationProcessor project(':modules:autoproxy:autoproxy-rx2-generators') /* RxJava v2.xx */
     annotationProcessor project(':modules:autoproxy:autoproxy-processor')
 
     /* OR for Kotlin Projects */
-    kapt project(':modules:autoproxy-rx-generators')
+    kapt project(':modules:autoproxy-rx-generators') /* RxJava v1.xx */
+    kapt project(':modules:autoproxy-rx2-generators') /* RxJava v2.xx */
     kapt project(':modules:autoproxy-processor')
 
 ```
@@ -170,10 +247,27 @@ include ':modules:autoproxy:autoproxy-annotations'
 include ':modules:autoproxy:autoproxy-generators'
 include ':modules:autoproxy:autoproxy-rx-annotations'
 include ':modules:autoproxy:autoproxy-rx-generators'
+include ':modules:autoproxy:autoproxy-rx2-generators'
 include ':modules:autoproxy:autoproxy-processor'
 ```
 
-## Step #3: Declare proxy class specifics
+</details>
+
+
+## 4.2. Make Proxy Class Specification
+
+```java
+/** Simplest case */
+@AutoProxy
+public interface MvpView {
+  /* ... declare method ... */
+}
+```
+
+OR check the bigger example bellow.
+
+<details>
+<summary>Declarations - Show code</summary>
 
 ```java
 @AutoProxy(flags = AutoProxy.Flags.ALL)
@@ -211,8 +305,10 @@ public interface MvpView {
     Observable<Boolean> startHearthAnimation();
 }
 ```
+</details>
 
-## Step 4: Code Generation Results
+<details>
+<summary>AutoGenerate Code - Show code</summary>
 
 ```java
 public abstract class Proxy_MvpView implements MvpView {
@@ -289,83 +385,76 @@ public abstract class Proxy_MvpView implements MvpView {
     return this.inner.startHearthAnimation();
   }
 
-  @StringDef({M.BOOLEANCALL, M.DISPATCHDEEPLINK_DEEPLINK, M.DUMMYCALL, M.DUMMYCALL_GENERIC, M.DUMMYCALL_MESSAGE_ARGS, M.NUMERICCALL, M.STARTHEARTHANIMATION})
-  public @interface M {
-    /**
-     * {@link #booleanCall()}
-     */
-    String BOOLEANCALL = "booleanCall";
+  /* ... other generated helpers customized by flags ... */
+}
+```
+</details>
 
-    /**
-     * {@link #dispatchDeepLink(android.net.Uri)}
-     */
-    String DISPATCHDEEPLINK_DEEPLINK = "dispatchDeepLink_deepLink";
 
-    /**
-     * {@link #dummyCall()}
-     */
-    String DUMMYCALL = "dummyCall";
+## 4.3. Usage in project (aka usage with Dagger)
 
-    /**
-     * {@link #dummyCall(java.util.List<java.lang.String>)}
-     */
-    String DUMMYCALL_GENERIC = "dummyCall_generic";
-
-    /**
-     * {@link #dummyCall(java.lang.String, java.lang.Object[])}
-     */
-    String DUMMYCALL_MESSAGE_ARGS = "dummyCall_message_args";
-
-    /**
-     * {@link #numericCall()}
-     */
-    String NUMERICCALL = "numericCall";
-
-    /**
-     * {@link #startHearthAnimation()}
-     */
-    String STARTHEARTHANIMATION = "startHearthAnimation";
-  }
+```java
+/** Get instance of View. */
+@Provides
+@PerFragment
+MvpView providesView() {
+    // Proxy class isolates Presenter from direct View calls. View
+    // will receive calls only when Fragment that implements that
+    // interface is in updateable state (attached to activity, not
+    // destroyed or any other inproper state).
+    return new Proxy_MvpView(this.view) {
+        @Override
+        public boolean predicate(@Methods @NonNull final String methodName, final Object... args) {
+            return ((BaseFragment) inner).isUpdatable();
+        }
+    };
 }
 ```
 
-## Step #5: Usage in project
+Simplified Java8 lambda version (from sample above):
 
 ```java
-        /** Get instance of View. */
-        @Provides
-        @PerFragment
-        MvpView providesView() {
-            // Proxy class isolates Presenter from direct View calls. View
-            // will receive calls only when Fragment that implements that
-            // interface is in updateable state (attached to activity, not
-            // destroyed or any other inproper state).
-            return new Proxy_MvpView(this.view) {
-                @Override
-                public boolean predicate(@Methods @NonNull final String methodName, final Object... args) {
-                    return ((BaseFragment) inner).isUpdatable();
-                }
-            };
-        }
-
+@NonNull
+public MvpView getProxy() {
+    return Proxy_MvpView.create(this.view, (m, args) -> ((BaseFragment) inner).isUpdatable());
+}
 ```
 
-## Customization of Generated Code
+## 4.4. Customization of Generated Code
 
 By providing special flags you can customize output of AutoProxy generator:
 
-```kotlin
+```java
 @AutoProxy(flags = AutoProxy.Flags.ALL)
-abstract class KotlinAbstractMvpView {
-  /* ... */
+```
+
+<details>
+<summary>Supported Flags - Show code</summary>
+
+```java
+/** Special code generation modifier flags. */
+@interface Flags {
+    /** Default value. */
+    int NONE = 0x0000;
+    /** Compose static method for easier instance creation. */
+    int CREATOR = 0x0001;
+    /** Compose afterCall(...) method for all methods in class. */
+    int AFTER_CALL = 0x0002;
+    /** Compose dispatchByName(...) method that maps string name to a method call. */
+    int MAPPING = 0x004;
+
+    /** Compose all additional methods. */
+    int ALL = CREATOR | AFTER_CALL | MAPPING;
 }
 ```
+</details>
+
+<details>
+<summary>Auto Generated Code (CREATOR) - Show code</summary>
 
 Outputs:
 
 ```java
-  public abstract <T> T afterCall(@M @NonNull final String methodName, final T result);
-
   /**
    * Copy this declaration to fix method demands for old APIs:
    *
@@ -392,6 +481,16 @@ Outputs:
       };
     };
   }
+```
+</details>
+
+<details>
+<summary>Auto Generated Code (AFTER_CALL & MAPPING) - Show code</summary>
+
+Outputs:
+
+```java
+  public abstract <T> T afterCall(@M @NonNull final String methodName, final T result);
 
   public <T> T dispatchByName(@M @NonNull final String methodName, final Object... args) {
     final Object result;
@@ -419,13 +518,64 @@ Outputs:
     return (T)null;
   }
 ```
+</details>
 
-## Usage patterns
+In addition generated Method Names Annotation class `@Proxy_MyClass.M`
 
-### Mimic final class interface
+<details>
+<summary>Auto Generated Code (@Proxy_MvpView.M) - Show code</summary>
 
-Can be used for decoupling the code implementation from system (or 3rd party) final class that
-is impossible to mock or fake.
+```java
+@Generated("AutoProxy Auto Generated Code")
+public abstract class Proxy_MvpView implements MvpView {
+  /* ... other code ... */
+
+  @StringDef({M.BOOLEANCALL, M.DISPATCHDEEPLINK_DEEPLINK, M.DUMMYCALL, M.DUMMYCALL_GENERIC, M.DUMMYCALL_MESSAGE_ARGS, M.NUMERICCALL, M.STARTHEARTHANIMATION})
+  public @interface M {
+    /** {@link #booleanCall()} */
+    String BOOLEANCALL = "booleanCall";
+
+    /** {@link #dispatchDeepLink(android.net.Uri)} */
+    String DISPATCHDEEPLINK_DEEPLINK = "dispatchDeepLink_deepLink";
+
+    /** {@link #dummyCall()} */
+    String DUMMYCALL = "dummyCall";
+
+    /** {@link #dummyCall(java.util.List<java.lang.String>)} */
+    String DUMMYCALL_GENERIC = "dummyCall_generic";
+
+    /** {@link #dummyCall(java.lang.String, java.lang.Object[])} */
+    String DUMMYCALL_MESSAGE_ARGS = "dummyCall_message_args";
+
+    /** {@link #numericCall()} */
+    String NUMERICCALL = "numericCall";
+
+    /** {@link #startHearthAnimation()} */
+    String STARTHEARTHANIMATION = "startHearthAnimation";
+  }
+}
+
+```
+
+</details>
+
+
+# 5. Advanced Usage (Patterns)
+
+## 5.1. Mimic final class interface
+
+```java
+/* TODO: place diagram here */
+```
+
+Can be used for decoupling the code implementation from system (or 3rd party) final class that is impossible to mock or fake.
+
+Generated code can be treated as a `binding by method name and signature` when proxy class resolves which method to call of the inner instance in last possible moment (runtime).
+
+`@AutoProxy(innerType = FinalClass.class)` - enables this approach.
+
+<details>
+<summary>Code Sample</summary>
 
 ```java
 /** Step 0: identify final class for proxy */
@@ -451,10 +601,21 @@ static MimicFinalClass proxy(FinalClass instance) {
     return Proxy_MimicFinalClass.create(instance, (m, args) -> true);
 }
 ```
+</details>
 
-### Side effects
+## 5.2. Side effects
 
 [![Chained Side Effects](https://i.imgur.com/akZIN6jl.png)](https://imgur.com/akZIN6j)
+
+How it works? Each instance of customized proxy wrap the instance of another proxy. 
+As result we have `wrapped calls` that is the another representation of the `chain of calls`. Think about it as `diving into call-stack`, on each wrapper we go deeper and deeper.
+
+`@AutoProxy(flags = AutoProxy.Flags.CREATE)` feature simplifying wrap's customization.
+
+<details>
+<summary>Code sample</summary>
+
+Declaration:
 
 ```java
 /** Step #0: Create class declaration */
@@ -466,7 +627,11 @@ public abstract class MyClass {
   @AutoProxy.Yield(RetBool.FALSE)
   boolean secondMethod();
 }
+```
 
+Customization: 
+
+```java
 /** Step #1: Compose side effect */
 static MyClass withLogging(MyClass instance) {
   return Proxy_MyClass.create(instance, (m, args) -> {
@@ -488,7 +653,11 @@ static MyClass withFalseSecondMethod(MyClass instance) {
     return (M.SECONDMETHOD.equals(m) ? false : true);
   });
 }
+```
 
+Usage:
+
+```java
 /* Usage of chain. */
 final MyClass instance = 
   withLogging(
@@ -499,12 +668,132 @@ final MyClass instance =
 
 /* ... Use instance in code ... */    
 ```
+</details>
 
-# Troubles
+## 5.3. Runtime defined output value
+
+```java
+/* TODO: place diagram here */
+```
+
+`@AutoProxy.Yield(Returns.SKIP)` - feature
+
+Feature enables:
+- Skipped inner class call
+- `predicate` result ignored, yield section is empty
+- `afterCall` is responsible for return value
+
+### 5.3.1. Skip Inner Class Call and Simple Return
+
+<details>
+<summary>Code sample</summary>
+
+```kotlin
+@AutoProxy(flags = AutoProxy.Flags.CREATOR)
+abstract class RxJava1Sample {
+    @AutoProxy.Yield(Returns.SKIP)
+    abstract fun chainedCallSkip(): Boolean?
+
+    /* ... */
+}
+```
+
+```java
+/** Usage: simple case */
+final RxJava1Sample instance = /* ... */;
+final RxJava1Sample proxy = new Proxy_RxJava1Sample(instance) {
+    /* ... */
+
+    @Override
+    public <T> T afterCall(@NonNull String methodName, T result) {
+        if (M.CHAINEDCALLSKIP.equals(methodName)) {
+            return (T) computeSomething();
+        }
+
+        return result;
+    }
+};
+
+private Boolean computeSomething() {
+    /* TODO: do own code here */
+}
+```
+</details>
+
+### 5.3.2. Skip Inner Class Call and Return Self Reference
+
+<details>
+<summary>Code sample</summary>
+
+```kotlin
+@AutoProxy(flags = AutoProxy.Flags.CREATOR)
+abstract class KotlinAbstractMvpViewRxJava1 {
+    @AutoProxy.Yield(Returns.SKIP)
+    abstract fun chainedCallSkip(): KotlinAbstractMvpViewRxJava1
+
+    /* ... */
+}
+```
+
+```java
+/** Usage: of custom return type. */
+final AtomicReference<RxJava1Sample> proxy = new AtomicReference<>();
+final RxJava1Sample instance = /* ... */;
+proxy.set(new Proxy_RxJava1Sample(instance) {
+    /* ... */
+
+    @Override
+    public <T> T afterCall(@NonNull String methodName, T result) {
+        if (Proxy_RxJava1Sample.M.CHAINEDCALLSKIP.equals(methodName)) {
+            return (T) proxy.get();
+        }
+
+        return result;
+    }
+});
+
+```
+
+Output:
+
+```java
+  @NotNull
+  public final KotlinAbstractMvpViewRxJava1 chainedCallSkip() {
+    if (!predicate( M.CHAINEDCALLSKIP )) {
+      // @com.olku.annotations.AutoProxy.Yield("skipped")
+      // skipped call, ignore predicate result. afterCall will be used for return composing.
+    }
+    final KotlinAbstractMvpViewRxJava1 forAfterCall = null;
+    return afterCall(M.CHAINEDCALLSKIP, forAfterCall);
+  }
+```
+</details>
+
+## 5.4. Customize Yield Return Types (Custom return type adapter)
+
+```java
+/* TODO: check the code in sample, TBD */
+```
+
+## 5.5. Decouple MVP pattern (inject mediator)
+
+```java
+/* TODO: check the code in sample, TBD */
+```
+
+## 5.6. Compose FAKE class
+
+Create a class for Unit Tests that fake the real implementation. It's and alternative to Mocking approach.
+
+```java
+/* TODO: check the code in sample, TBD */
+```
+
+# 6. Troubles
 
 http://www.vogella.com/tutorials/GitSubmodules/article.html
 
-## Reset submodule to remote repository version
+## 6.1. Reset submodule to remote repository version
 
 ```bash
 git submodule foreach 'git reset --hard'
@@ -512,7 +801,19 @@ git submodule foreach 'git reset --hard'
 git submodule foreach --recursive 'git reset --hard'
 ```
 
-## How to debug?
+## 6.2. Enable Tracing
+
+Add those lines to `local.properties` file:
+
+```bash
+#
+# Make Kotlin Annotation Processor verbose
+#
+kapt.verbose=true
+
+```
+
+## 6.3. How to Debug?
 
 Pre-steps:
 
@@ -529,7 +830,7 @@ Debugging:
 
 [more details ...](https://stackoverflow.com/questions/8587096/how-do-you-debug-java-annotation-processors-using-intellij)
 
-## How to Change/Generate GPG signing key?
+## 6.4. How to Change/Generate GPG signing key?
 
 ```bash
 brew install gpg
@@ -554,7 +855,7 @@ gpg -a --export-secret-key 6B38C8BB4161F9AF99133B4B8DF78BA02F1868F9 >gpg.private
 + ext.gpg_password = 'my_new_and_secure_passphrase'
 ```
 
-## How to publish?
+## 6.5. How to Publish?
 
 Edit file `credentials.gradle` in the root of the project:
 
@@ -569,7 +870,7 @@ Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than 
 ./gradlew bintrayUpload
 ```
 
-# Roadmap
+# 7. Roadmap
 
 - [x] Incremental Annotation Processing
 - [x] Create constants class for method names
@@ -577,10 +878,14 @@ Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than 
 - [x] static `create` method that allows proxy creation with use of lambda
 - [x] `dispatchByName` method that calls specific inner instance method with provided parameters
 - [x] customization auto-generation flags, configure demands to helper code
-- [ ] customize Prefix of generated class "Proxy_" can be replaced by "Fake_" or "Stub_"
 - [x] Proxy for final classes
-- [ ] Allow Mutable inner instance, replace instance in runtime for proxy
-- [ ] Yield predicate with customizable return (lambda expression)
-- [ ] Add Support for RxJava v2
-- [ ] Add Support for Kotlin language (generate code in Kotlin)
+- [x] Yield predicate with customizable return (lambda expression) (use SKIP approach)
+- [x] Add Support for RxJava v2
 - [ ] Add Support for RxJava v3
+- [ ] customize Prefix of generated class "Proxy_" can be replaced by "Fake_" or "Stub_"
+- [ ] Allow Mutable inner instance, replace instance in runtime for proxy
+- [ ] Add Support for Kotlin language (generate code in Kotlin)
+
+# 8. License
+
+MIT &copy; Oleksander Kucherenko (ArtfulBits IT AB), 2017-2020

@@ -4,12 +4,12 @@ import android.net.Uri
 import com.olku.annotations.*
 import com.olku.generators.JustRxGenerator
 import com.olku.generators.RetRxGenerator
-import rx.*
+import rx.Completable
 import rx.Observable
-import java.util.*
+import rx.Single
 
 @AutoProxy(flags = AutoProxy.Flags.CREATOR)
-abstract class KotlinAbstractMvpViewRxJava1 {
+abstract class RxJava1Sample {
     /** Returns NULL if predicate returns False. */
     @AutoProxy.Yield(Returns.NULL)
     abstract fun dummyCall(): Observable<Boolean?>?
@@ -19,10 +19,10 @@ abstract class KotlinAbstractMvpViewRxJava1 {
     abstract fun dispatchDeepLink(deepLink: Uri): Boolean
 
     @AutoProxy.Yield(Returns.THIS)
-    abstract fun chainedCall(): KotlinAbstractMvpViewRxJava1
+    abstract fun chainedCall(): RxJava1Sample
 
     @AutoProxy.Yield(Returns.SKIP)
-    abstract fun chainedCallSkip(): KotlinAbstractMvpViewRxJava1
+    abstract fun chainedCallSkip(): Boolean?
 
     /** Throws exception on False result from predicate. */
     @AutoProxy.Yield
