@@ -111,7 +111,7 @@ dependencies {
     /* Kotlin Standard Library https://kotlinlang.org/api/latest/jvm/stdlib/index.html */
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
 
-    apply from: rootProject.file('gradle/dependencies.tdd.gradle'), to:project
+    apply from: rootProject.file('gradle/dependencies.tdd.gradle'), to: project
 }
 
 kapt {

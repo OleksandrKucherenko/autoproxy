@@ -10,6 +10,8 @@ import rx.Completable;
 
 /** RxJava return values generator. */
 public class JustRxGenerator implements ReturnsPoet {
+    private static final boolean IS_DEBUG = false;
+
     @NonNull
     public static JustRxGenerator getInstance() {
         return Singleton.INSTANCE;
@@ -18,7 +20,7 @@ public class JustRxGenerator implements ReturnsPoet {
     public boolean compose(@NonNull final Type returnType,
                            @Nullable final String type,
                            @NonNull final MethodSpec.Builder builder) {
-        System.out.print("just '" + type + "' ");
+        if(IS_DEBUG) System.out.print("just '" + type + "' ");
         final Class<?> rxType = RetRxGenerator.resolveReturnType(returnType);
 
         if (null != type) {
