@@ -15,6 +15,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 @Retention(CLASS)
 @Target(value = TYPE)
 public @interface AutoProxy {
+    /** Default prefix for auto-generated class. */
+    String PROXY = "Proxy_";
+
     /** Type generator class. */
     Class<? extends AutoProxyClassGenerator> value() default Common.class;
 
@@ -26,6 +29,9 @@ public @interface AutoProxy {
 
     /** Class used as a inner variable type. By default will be used annotated class/interface type. */
     Class<?> innerType() default Defaults.class;
+
+    /** Auto-generated class name prefix. Examples: Stub_, Fake_, Mediator_ */
+    String prefix() default PROXY;
 
     /** Represents DEFAULT class generator. CommonClassGenerator class in processors module. */
     abstract class Common implements AutoProxyClassGenerator {
@@ -41,6 +47,8 @@ public @interface AutoProxy {
         /* package */ static final String FLAGS = "flags";
         /** Name of the annotation method {@link #value()}. */
         /* package */ static final String VALUE = "value";
+        /** Name of the annotation method {@link #prefix()}. */
+        /* package */ static final String PREFIX = "prefix";
     }
 
     /** Customize return value of the method if call was canceled by predicate. Only for PUBLIC methods. */
@@ -106,6 +114,7 @@ public @interface AutoProxy {
             map.put(Defaults.FLAGS, AutoProxy.Flags.NONE);
             map.put(Defaults.DEFAULT_YIELD, Returns.THROWS);
             map.put(Defaults.INNER_TYPE, Defaults.class);
+            map.put(Defaults.PREFIX, PROXY);
 
             return map;
         }
