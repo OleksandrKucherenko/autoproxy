@@ -228,7 +228,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
     @NonNull
     protected TypeSpec.Builder createClass(@NonNull final FieldSpec... members) {
-        final TypeSpec.Builder builder = TypeSpec.classBuilder("Proxy_" + type.flatClassName)
+        final String prefix = this.type.annotation.prefix();
+        final TypeSpec.Builder builder = TypeSpec.classBuilder(prefix + type.flatClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
 
         // TODO: mimic annotations of the super type
@@ -426,11 +427,12 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
                 "    return action.apply(methodName, args);\n" +
                 "  }\n";
 
+        final String prefix = this.type.annotation.prefix();
         builder.addCode("" +
                 "return new $L(instance) {\n" +
                 predicateOverride +
                 (isAnyAfterCalls.get() ? afterCallOverride : "") +
-                "};\n", "Proxy_" + type.flatClassName);
+                "};\n", prefix + type.flatClassName);
 
         return builder;
     }

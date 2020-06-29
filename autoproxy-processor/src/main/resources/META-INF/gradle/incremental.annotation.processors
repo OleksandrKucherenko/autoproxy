@@ -1,2 +1,1 @@
-EntityProcessor,isolating
-com.olku.processors.AutoProxyProcessor,dynamic
+com.olku.processors.AutoProxyProcessor,isolating

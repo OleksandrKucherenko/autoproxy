@@ -6,6 +6,7 @@ buildscript {
         useTdd = Boolean.parseBoolean("${project.USE_TDD}")
         useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
         /* Versions */
+        junitVersion = project.JUNIT_VERSION
         jacocoVersion = project.JACOCO_VERSION
         kotlinVersion = project.KOTLIN_VERSION
         jfrogVersion = project.JFROG_PLUGIN
@@ -72,10 +73,10 @@ allprojects {
         useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
 
         /* Unit testing libraries */
-        junitVersion = project.JUNIT_VERSION
-        hamcrestVersion = project.HAMCREST_VERSION
-        assertjVersion = project.ASSERTJ_VERSION
-        mockitoVersion = project.MOCKITO_VERSION
+//        junitVersion = project.JUNIT_VERSION
+//        hamcrestVersion = project.HAMCREST_VERSION
+//        assertjVersion = project.ASSERTJ_VERSION
+//        mockitoVersion = project.MOCKITO_VERSION
 
         /* Kotlin Support */
         kotlinVersion = project.KOTLIN_VERSION

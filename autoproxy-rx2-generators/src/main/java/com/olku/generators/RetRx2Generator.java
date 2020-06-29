@@ -7,10 +7,16 @@ import com.olku.annotations.RetRx;
 import com.squareup.javapoet.MethodSpec;
 import com.sun.tools.javac.code.Type;
 
-import io.reactivex.*;
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 /** RxJava return values generator. */
 public class RetRx2Generator implements ReturnsPoet {
+    private static final boolean IS_DEBUG = false;
+
     /** Base classes supported by rxJava v2.xx */
     private static final Class<?>[] BASE_CLASSES = {
             Flowable.class,
@@ -78,17 +84,17 @@ public class RetRx2Generator implements ReturnsPoet {
     @NonNull
     /* package */ static Class<?> resolveReturnType(@NonNull final Type returnType) {
         final String returnTypeName = returnType.toString();
-        System.out.print("type: " + returnTypeName);
+        if(IS_DEBUG) System.out.print("type: " + returnTypeName);
 
         for (Class<?> clazz : BASE_CLASSES) {
             final String name = clazz.getCanonicalName();
             if (returnTypeName.startsWith(name)) {
-                System.out.println(" resolve to: " + name);
+                if(IS_DEBUG) System.out.println(" resolve to: " + name);
                 return clazz;
             }
         }
 
-        System.out.println(" fallback to: io.reactivex.Observable");
+        if(IS_DEBUG) System.out.println(" fallback to: io.reactivex.Observable");
 
         return Observable.class;
     }

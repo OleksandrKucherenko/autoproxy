@@ -1,0 +1,37 @@
+// validate script needs
+if (!project.ext.has("description"))
+    throw new RuntimeException("ext.description property is not defined in project." +
+            "\n\nExample:" +
+            "\n  ext.description = 'MyLibrary that do something good'");
+
+// delete old version
+project.file('credentials.gradle').delete()
+
+// create a new file
+def fc = project.file('credentials.gradle')
+
+if (!fc.exists()) {
+    def NL = "\n"
+    fc.createNewFile()
+
+    fc.append("ext.publishedGroupId = '${bintray_group}'" + NL)
+    fc.append("ext.artifact = '${project.name}'" + NL)
+
+    fc.append("ext.libraryName = '${project.name}'" + NL)
+    fc.append("ext.libraryDescription = '${project.ext.description}'" + NL)
+    fc.append("ext.libraryVersion = '${project.parent.properties.get('snapshot.version')}'" + NL)
+
+    fc.append("ext.licenseName = 'The MIT License (MIT)'" + NL)
+    fc.append("ext.licenseUrl = 'http://opensource.org/licenses/MIT'" + NL)
+    fc.append("ext.allLicenses = ['MIT']" + NL)
+
+    fc.append("ext.developerId = '${bintray_user}'" + NL)
+    fc.append("ext.developerName = '${bintray_fullname}'" + NL)
+    fc.append("ext.developerEmail = '${bintray_email}'" + NL)
+
+    fc.append("ext.gitUrl = '${git_url}'" + NL)
+    fc.append("ext.siteUrl = '${git_url}'" + NL)
+
+    fc.append("ext.bintrayRepo = '${bintray_repo}'" + NL)
+    fc.append("ext.bintrayName = '${bintray_group}:${bintray_name}'" + NL)
+}

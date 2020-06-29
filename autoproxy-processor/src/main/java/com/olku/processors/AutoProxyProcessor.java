@@ -1,5 +1,7 @@
 package com.olku.processors;
 
+import androidx.annotation.NonNull;
+
 import com.google.auto.service.AutoService;
 import com.olku.annotations.AutoProxy;
 import com.olku.annotations.AutoProxyClassGenerator;
@@ -67,6 +69,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedOptions() {
+        // https://docs.gradle.org/nightly/userguide/java_plugin.html#sec:incremental_annotation_processing
         return Collections.singleton("org.gradle.annotation.processing.aggregating");
     }
 
@@ -135,6 +138,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
         return true;
     }
 
+    @NonNull
     public HashMap<String, List<Element>> getMapGeneratedFileToOriginatingElements() {
         return mMapGeneratedFileToOriginatingElements;
     }

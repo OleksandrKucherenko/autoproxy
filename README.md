@@ -882,7 +882,7 @@ Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than 
 - [x] Yield predicate with customizable return (lambda expression) (use SKIP approach)
 - [x] Add Support for RxJava v2
 - [ ] Add Support for RxJava v3
-- [ ] customize Prefix of generated class "Proxy_" can be replaced by "Fake_" or "Stub_"
+- [x] customize Prefix of generated class "Proxy_" can be replaced by "Fake_" or "Stub_"
 - [ ] Allow Mutable inner instance, replace instance in runtime for proxy
 - [ ] Add Support for Kotlin language (generate code in Kotlin)
 
