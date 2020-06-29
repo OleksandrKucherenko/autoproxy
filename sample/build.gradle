@@ -111,11 +111,7 @@ dependencies {
     /* Kotlin Standard Library https://kotlinlang.org/api/latest/jvm/stdlib/index.html */
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion}"
 
-    /* Unit test */
-    testImplementation "junit:junit:${junitVersion}"
-
-    /* Mockito, https://github.com/mockito/mockito */
-    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+    apply from: rootProject.file('gradle/dependencies.tdd.gradle'), to:project
 }
 
 kapt {

@@ -1,0 +1,15 @@
+dependencies {
+    ext {
+        mockitoVersion = project.MOCKITO_VERSION
+        junitVersion = project.JUNIT_VERSION
+        jacocoVersion = project.JACOCO_VERSION
+        hamcrestVersion = project.HAMCREST_VERSION
+        assertjVersion = project.ASSERTJ_VERSION
+    }
+
+    /* Mockito, https://github.com/mockito/mockito */
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+
+    /* Unit test */
+    testImplementation "junit:junit:${junitVersion}"
+}
