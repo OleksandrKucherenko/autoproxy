@@ -11,10 +11,13 @@ buildscript {
         kotlinVersion = project.KOTLIN_VERSION
         jfrogVersion = project.JFROG_PLUGIN
         dcendVersion = project.DCENDENTS_PLUGIN
+        loggerVersion = project.LOGGER_PLUGIN
     }
     repositories {
+        mavenLocal()
         google()
         jcenter()
+        maven { url = uri("https://plugins.gradle.org/m2/") }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.0-alpha06'
@@ -47,12 +50,19 @@ buildscript {
             }
             //endregion
 
+            //region classpath "com.adarshr:gradle-test-logger-plugin:${loggerVersion}"
+            if (useTdd) {
+                /* https://github.com/radarsh/gradle-test-logger-plugin */
+                classpath "com.adarshr:gradle-test-logger-plugin:${loggerVersion}"
+            }
+            //endregion
         }
     }
 }
 
 allprojects {
     repositories {
+        mavenLocal()
         google()
         jcenter()
     }
@@ -71,12 +81,6 @@ allprojects {
         /* Test Driven Development */
         useTdd = Boolean.parseBoolean("${project.USE_TDD}")
         useJacoco = useTdd && Boolean.parseBoolean("${project.USE_JACOCO}")
-
-        /* Unit testing libraries */
-//        junitVersion = project.JUNIT_VERSION
-//        hamcrestVersion = project.HAMCREST_VERSION
-//        assertjVersion = project.ASSERTJ_VERSION
-//        mockitoVersion = project.MOCKITO_VERSION
 
         /* Kotlin Support */
         kotlinVersion = project.KOTLIN_VERSION
@@ -111,10 +115,12 @@ allprojects {
             compilerArgs << "-Xlint:all"            // Turn on all warnings
             compilerArgs << "-Xlint:-options"       // Turn off "missing" bootclasspath warning
             compilerArgs << "-Xlint:-path"          // Turn off warning - annotation processing
-            compilerArgs << "-Xlint:-processing"    // Turn off warning about not claiming annotations
+            compilerArgs << "-Xlint:-processing"
+            // Turn off warning about not claiming annotations
             compilerArgs << "-Xlint:-unchecked"     // Turn off warning unchecked cast used
             compilerArgs << "-Xlint:-rawtypes"      // Turn off warning for raw types
-            compilerArgs << "-Xlint:-classfile"     // Turn off warning classfile version 52.0 vs 51.0
+            compilerArgs << "-Xlint:-classfile"
+            // Turn off warning classfile version 52.0 vs 51.0
             compilerArgs << "-Xlint:-sunapi"        // Turn off SUN Api usage warnings
             compilerArgs << "-XDenableSunApiLintControl"
             compilerArgs << "-Werror"               // Turn warnings into errors
@@ -151,7 +157,7 @@ task clean(type: Delete) {
 
 /** Force full version of gradle instead of binaries only. */
 tasks.wrapper {
-  distributionType = Wrapper.DistributionType.ALL
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 println "Is submodule: ${rootProject.buildDir != project.buildDir}"

@@ -1,12 +1,17 @@
-dependencies {
-    ext {
-        mockitoVersion = project.MOCKITO_VERSION
-        junitVersion = project.JUNIT_VERSION
-        jacocoVersion = project.JACOCO_VERSION
-        hamcrestVersion = project.HAMCREST_VERSION
-        assertjVersion = project.ASSERTJ_VERSION
-    }
+ext {
+    mockitoVersion = project.MOCKITO_VERSION
+    junitVersion = project.JUNIT_VERSION
+    jacocoVersion = project.JACOCO_VERSION
+    hamcrestVersion = project.HAMCREST_VERSION
+    assertjVersion = project.ASSERTJ_VERSION
+}
 
+if (useTdd) {
+    /* https://github.com/radarsh/gradle-test-logger-plugin */
+    apply plugin: 'com.adarshr.test-logger'
+}
+
+dependencies {
     /* Mockito, https://github.com/mockito/mockito */
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 
