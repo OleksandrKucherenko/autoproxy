@@ -1,15 +1,25 @@
-dependencies {
-    ext {
-        mockitoVersion = project.MOCKITO_VERSION
-        junitVersion = project.JUNIT_VERSION
-        jacocoVersion = project.JACOCO_VERSION
-        hamcrestVersion = project.HAMCREST_VERSION
-        assertjVersion = project.ASSERTJ_VERSION
-    }
+ext {
+    mockitoVersion = project.MOCKITO_VERSION
+    junitVersion = project.JUNIT_VERSION
+    jacocoVersion = project.JACOCO_VERSION
+    hamcrestVersion = project.HAMCREST_VERSION
+    assertjVersion = project.ASSERTJ_VERSION
+}
 
+if (useTdd) {
+    /* https://github.com/radarsh/gradle-test-logger-plugin */
+    apply plugin: 'com.adarshr.test-logger'
+}
+
+dependencies {
     /* Mockito, https://github.com/mockito/mockito */
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 
     /* Unit test */
-    testImplementation "junit:junit:${junitVersion}"
+    testImplementation("junit:junit:${junitVersion}") {
+        exclude group: "org.hamcrest"
+    }
+
+    /* https://mvnrepository.com/artifact/org.hamcrest/hamcrest/2.2 */
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 }

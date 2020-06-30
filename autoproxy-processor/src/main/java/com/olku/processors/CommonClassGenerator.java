@@ -72,6 +72,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     protected static final String CREATOR = "create";
     /** mapping method that allows to dispatch call to a proper method by it name. */
     protected static final String MAPPER = "dispatchByName";
+    /** Method name. Method used for binding innerType to Proxy Interface. */
+    protected static final String BINDER = "bind";
     /** Annotation type name that is used for constants definition. */
     protected static final String METHODS = "M";
     /** parameter name. */
@@ -86,6 +88,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
             "}\n" +
             "</pre>";
 
+    /** default visibility for helper methods. */
+    private static final Modifier DEFAULT_VISIBILITY = Modifier.DEFAULT;
     //endregion
 
     //region Members
@@ -145,6 +149,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     protected void composeInternal(@NonNull Filer filer) throws Exception {
         // is generation flag for forced afterCall set
         final boolean hasAfterCalls = ((this.type.annotation.flags() & Flags.AFTER_CALL) == Flags.AFTER_CALL);
+        final boolean hasBinding = !superType.toString().equals(getSuperTypeName().toString());
         isAnyAfterCalls.set(hasAfterCalls);
 
         // compose class
@@ -153,6 +158,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         // constructor and predicate
         classSpec.addMethod(createConstructor().build());
+        if (hasBinding) classSpec.addMethod(createBindConstructor().build());
         classSpec.addMethod(createPredicate().build());
 
         // auto-generate method proxy calls
@@ -166,6 +172,12 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         // if allowed creator method
         if ((this.type.annotation.flags() & Flags.CREATOR) == Flags.CREATOR) {
             classSpec.addMethod(createCreator().build());
+            if (hasBinding) classSpec.addMethod(createBindCreator().build());
+        }
+
+        // if supertype != innerType, we are mimic final class
+        if (hasBinding) {
+            classSpec.addMethod(createBinder().build());
         }
 
         // if allowed mapper method
@@ -173,7 +185,8 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
             classSpec.addMethod(createMapper().build());
         }
 
-        classSpec.addType(createMethodsMapper().build());
+        // compose helper annotation
+        classSpec.addType(createMethodsNamesMapper().build());
 
         classSpec.addOriginatingElement(type.element);
 
@@ -213,7 +226,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     protected FieldSpec[] createMembers() {
         final List<FieldSpec> fields = new ArrayList<>();
 
-        final TypeName typeOfField = getSuperTypeName();
+        final TypeName typeOfField = this.superType; //getSuperTypeName();
         final FieldSpec.Builder builder = FieldSpec.builder(typeOfField, "inner", Modifier.PROTECTED, Modifier.FINAL);
         fields.add(builder.build());
 
@@ -288,9 +301,10 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         }
     }
 
+    /** Compose default constructor for proxy class. */
     @NonNull
     protected MethodSpec.Builder createConstructor() {
-        final TypeName innerMemberSuperType = getSuperTypeName();
+        final TypeName innerMemberSuperType = this.superType; //getSuperTypeName();
         final ParameterSpec.Builder param = ParameterSpec.builder(innerMemberSuperType, "instance", Modifier.FINAL)
                 .addAnnotation(NonNull.class);
 
@@ -298,6 +312,21 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(param.build())
                 .addStatement("this.inner = $N", "instance");
+
+        return builder;
+    }
+
+    /** Compose default constructor for proxy class. */
+    @NonNull
+    protected MethodSpec.Builder createBindConstructor() {
+        final TypeName innerMemberSuperType = getSuperTypeName();
+        final ParameterSpec.Builder param = ParameterSpec.builder(innerMemberSuperType, "instance", Modifier.FINAL)
+                .addAnnotation(NonNull.class);
+
+        final MethodSpec.Builder builder = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(param.build())
+                .addStatement("this($L($N))", BINDER, "instance");
 
         return builder;
     }
@@ -340,7 +369,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         final String methodName = PREDICATE;
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName);
-        builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
+        builder.addModifiers(Modifier.PROTECTED, Modifier.ABSTRACT);
         builder.returns(boolean.class);
 
         final ParameterSpec pMethodNames = ParameterSpec.builder(String.class, METHOD_NAME, Modifier.FINAL)
@@ -365,7 +394,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
     @NonNull
     protected MethodSpec.Builder createAfterCall() {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(AFTER_CALL);
-        builder.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
+        builder.addModifiers(Modifier.PROTECTED, Modifier.ABSTRACT);
 
         builder.addTypeVariable(TypeVariableName.get("T", Object.class));
 
@@ -405,14 +434,20 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(CREATOR);
         builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        builder.addAnnotation(NonNull.class);
 
         copyMethodGenericVariables(builder);
         builder.returns(superType);
 
-        final TypeName innerMemberType = getSuperTypeName();
-        builder.addParameter(innerMemberType, "instance", Modifier.FINAL);
+        final TypeName innerMemberType = this.superType; //getSuperTypeName();
 //        builder.addParameter(ParameterizedTypeName.get(Func2.class, String.class, Object[].class, Boolean.class), "action", Modifier.FINAL);
-        builder.addParameter(ParameterizedTypeName.get(BiFunction.class, String.class, Object[].class, Boolean.class), "action", Modifier.FINAL);
+        final ParameterSpec.Builder param1 = ParameterSpec.builder(innerMemberType, "instance", Modifier.FINAL)
+                .addAnnotation(NonNull.class);
+        final ParameterSpec.Builder param2 = ParameterSpec.builder(ParameterizedTypeName.get(
+                BiFunction.class, String.class, Object[].class, Boolean.class), "action", Modifier.FINAL)
+                .addAnnotation(NonNull.class);
+        builder.addParameter(param1.build());
+        builder.addParameter(param2.build());
         builder.addJavadoc(BI_FUNCTION_FIX);
 
         final String afterCallOverride = '\n' +
@@ -437,10 +472,94 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
         return builder;
     }
 
+    /** Compose CREATOR overload method, that accepts final class instance instead of proxy interface. */
+    @NonNull
+    protected MethodSpec.Builder createBindCreator() {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(CREATOR);
+        builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        builder.addAnnotation(NonNull.class);
+
+        copyMethodGenericVariables(builder);
+        builder.returns(superType);
+
+        final TypeName innerMemberType = getSuperTypeName();
+        final ParameterSpec.Builder param1 = ParameterSpec.builder(innerMemberType, "instance", Modifier.FINAL)
+                .addAnnotation(NonNull.class);
+        final ParameterSpec.Builder param2 = ParameterSpec.builder(ParameterizedTypeName.get(
+                BiFunction.class, String.class, Object[].class, Boolean.class), "action", Modifier.FINAL)
+                .addAnnotation(NonNull.class);
+        builder.addParameter(param1.build());
+        builder.addParameter(param2.build());
+
+        builder.addCode("return $L($L($L), $L);", CREATOR, BINDER, "instance", "action");
+
+        return builder;
+    }
+
+    /**
+     * Compose anonymous class that bind final class to mimic interface.
+     * Make possible chained/wrapped calls.
+     */
+    @NonNull
+    protected MethodSpec.Builder createBinder() throws Exception {
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(BINDER);
+        builder.addAnnotation(NonNull.class);
+        builder.returns(superType);
+        builder.addModifiers(Modifier.PROTECTED, Modifier.STATIC);
+
+        final TypeName innerMemberType = getSuperTypeName();
+        final ParameterSpec.Builder param = ParameterSpec.builder(innerMemberType, "instance", Modifier.FINAL)
+                .addAnnotation(NonNull.class);
+        builder.addParameter(param.build());
+
+        final TypeSpec.Builder anonymousClass = TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(superType);
+
+        for (final Element method : type.methods) {
+            anonymousClass.addMethod(createDirectCall((Symbol.MethodSymbol) method).build());
+        }
+
+        builder.addCode("return $L;", anonymousClass.build());
+
+        return builder;
+    }
+
+    /** Compose direct call forwarder to instance. */
+    @NonNull
+    private MethodSpec.Builder createDirectCall(@NonNull Symbol.MethodSymbol ms) throws Exception {
+        final String methodName = ms.getSimpleName().toString();
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName);
+        builder.addModifiers(Modifier.FINAL, Modifier.PUBLIC);
+
+        // extract annotations
+        mimicMethodAnnotations(builder, ms);
+        builder.addAnnotation(Override.class);
+
+        // extract return type
+        final Type returnType = ms.getReturnType();
+        final boolean hasReturn = returnType.getKind() != TypeKind.VOID;
+        builder.returns(TypeName.get(returnType));
+
+        // extract parameters
+        final StringBuilder arguments = mimicParameters(builder, ms);
+
+        // extract throws
+        mimicThrows(builder, ms);
+
+        builder.addStatement((hasReturn ? "return " : "") + "instance.$L($L)",
+                methodName, arguments.toString());
+
+        return builder;
+    }
+
+    /**
+     * Compose method that by method name and arguments will do dispatching to
+     * proper inner instance method call.
+     */
     @NonNull
     protected MethodSpec.Builder createMapper() {
         final MethodSpec.Builder builder = MethodSpec.methodBuilder(MAPPER);
-        builder.addModifiers(Modifier.PUBLIC);
+        builder.addModifiers(Modifier.PROTECTED);
 
         builder.addTypeVariable(TypeVariableName.get("T", Object.class));
         builder.returns(TypeVariableName.get("T"));
@@ -487,7 +606,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
      * @return annotation builder that contains all found methods names.
      */
     @NonNull
-    protected TypeSpec.Builder createMethodsMapper() {
+    protected TypeSpec.Builder createMethodsNamesMapper() {
         final TypeSpec.Builder builder = TypeSpec.annotationBuilder(METHODS)
                 .addModifiers(Modifier.PUBLIC);
 
@@ -592,6 +711,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
 
         // extract annotations of return type / method. copy all, except @Yield & @AfterCall
         mimicMethodAnnotations(builder, ms);
+        builder.addAnnotation(Override.class);
 
         // extract our own annotations
         final Attribute.Compound yield = findYieldMethodAnnotation(ms);
@@ -789,6 +909,7 @@ public class CommonClassGenerator implements AutoProxyClassGenerator {
             for (final Attribute.Compound am : ms.getAnnotationMirrors()) {
                 if (extractClass(am) == AutoProxy.Yield.class) continue;
                 if (extractClass(am) == AutoProxy.AfterCall.class) continue;
+                if (extractClass(am) == Override.class) continue;
 
                 final AnnotationSpec.Builder builderAnnotation = mimicAnnotation(am);
                 if (null != builderAnnotation) {
