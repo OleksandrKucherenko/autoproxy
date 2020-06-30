@@ -38,7 +38,7 @@ Also known as a design pattern: proxy, delegate, interceptor.
     - [5.3.2. Skip Inner Class Call and Return Self Reference](#532-skip-inner-class-call-and-return-self-reference)
   - [5.4. Customize Yield Return Types (Custom return type adapter)](#54-customize-yield-return-types-custom-return-type-adapter)
   - [5.5. Decouple MVP pattern (inject mediator)](#55-decouple-mvp-pattern-inject-mediator)
-  - [5.6. Compose FAKE class](#56-compose-fake-class)
+  - [5.6. Compose FAKE class (experimental)](#56-compose-fake-class-experimental)
 - [6. Troubles](#6-troubles)
   - [6.1. Reset submodule to remote repository version](#61-reset-submodule-to-remote-repository-version)
   - [6.2. Enable Tracing](#62-enable-tracing)
@@ -158,9 +158,9 @@ dependencies{
     /* AutoProxy generator */
     compileOnly 'com.olku:autoproxy-annotations:+'
     compileOnly 'com.olku:autoproxy-rx-annotations:+'
-    compileOnly 'com.olku:autoproxy-rx2-generators:+'
+    compileOnly 'com.olku:autoproxy-rx3-generators:+'
 
-    annotationProcessor 'com.olku:autoproxy-rx-generators:+'
+    annotationProcessor 'com.olku:autoproxy-rx3-generators:+'
     annotationProcessor 'com.olku:autoproxy-processor:+'
 }
 ```
@@ -196,6 +196,23 @@ dependencies{
     compileOnly 'com.olku:autoproxy-rx2-generators:+' /* RxJava v2.xx */
 
     annotationProcessor 'com.olku:autoproxy-rx2-generators:+' /* RxJava v2.xx */
+    annotationProcessor 'com.olku:autoproxy-processor:+'
+}
+```
+</details>
+
+<details>
+<summary>With RxJava v3.xx Support</summary>
+
+```groovy
+/* add dependencies */
+dependencies{
+    /* AutoProxy generator */
+    compileOnly 'com.olku:autoproxy-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx-annotations:+'
+    compileOnly 'com.olku:autoproxy-rx3-generators:+' /* RxJava v3.xx */
+
+    annotationProcessor 'com.olku:autoproxy-rx3-generators:+' /* RxJava v3.xx */
     annotationProcessor 'com.olku:autoproxy-processor:+'
 }
 ```
@@ -520,7 +537,7 @@ Outputs:
 ```
 </details>
 
-In addition generated Method Names Annotation class `@Proxy_MyClass.M`
+In addition generated several parts of the code depends on other options:
 
 <details>
 <summary>Auto Generated Code (@Proxy_MvpView.M) - Show code</summary>
@@ -554,10 +571,54 @@ public abstract class Proxy_MvpView implements MvpView {
     String STARTHEARTHANIMATION = "startHearthAnimation";
   }
 }
-
 ```
 
 </details>
+
+Binder is a simple method that wrap final class into proxy interface, make it available for chained calls and other features.
+
+<details>
+<summary>Auto Generated Code (BINDER) - Show code</summary>
+
+```java
+@NonNull
+protected static MimicFinalClass bind(@NonNull final FinalClass instance) {
+  return new MimicFinalClass() {
+    @Override
+    public final void dummyCall() {
+      instance.dummyCall();
+    }
+
+    @Override
+    public final boolean returnBoolean() {
+      return instance.returnBoolean();
+    }
+
+    @Override
+    public final void consumer(final String data) {
+      instance.consumer(data);
+    }
+
+    @Override
+    public final void bi_consumer(final String data, final String options) {
+      instance.bi_consumer(data, options);
+    }
+
+    @Override
+    public final String et_function(final String data) {
+      return instance.et_function(data);
+    }
+
+    @Override
+    public final String bi_function(final String data, final String options) {
+      return instance.bi_function(data, options);
+    }
+  };
+}
+```
+
+</details>
+
 
 
 # 5. Advanced Usage (Patterns)
@@ -599,6 +660,8 @@ public interface MimicFinalClass {
 static MimicFinalClass proxy(FinalClass instance) {
     // simplest way to forward all to inner instance
     return Proxy_MimicFinalClass.create(instance, (m, args) -> true);
+    // alternative:
+    // return Proxy_MimicFinalClass.create(Proxy_MimicFinalClass.bind(instance), (m, args) -> true);
 }
 ```
 </details>
@@ -771,9 +834,35 @@ Output:
 
 ## 5.4. Customize Yield Return Types (Custom return type adapter)
 
+Library provides three generators: 
+- rxJava v1.xx: `RetRxGenerator`, `JustRxGenerator`
+- rxJava v2.xx: `RetRx2Generator`, `JustRx3Generator`
+- rxJava v3.xx: `RetRx2Generator`, `JustRx3Generator`
+
+<details>
+<summary>Code sample</summary>
+
 ```java
-/* TODO: check the code in sample, TBD */
+@AutoProxy.Yield(adapter = RetRxGenerator::class, value = RetRx.EMPTY)
+abstract fun observableMethod(): Observable<Boolean>
+
+@AutoProxy.Yield(adapter = RetRxGenerator::class, value = RetRx.ERROR)
+abstract fun observableMethod(): Observable<Boolean>
+
+@AutoProxy.Yield(adapter = RetRx2Generator::class, value = RetRx.NEVER)
+abstract fun flowableMethod(): Flowable<Boolean>
+
+@AutoProxy.Yield(adapter = JustRx2Generator::class, value = "false")
+abstract fun flowableMethod(): Flowable<Boolean>
+
+@AutoProxy.Yield(adapter = RetRx3Generator::class, value = RetRx.ERROR)
+abstract fun maybeMethod(): Maybe<Boolean>
+
+@AutoProxy.Yield(adapter = JustRx3Generator::class, value = "ignored")
+abstract fun completableMethod(): Completable
 ```
+
+</details>
 
 ## 5.5. Decouple MVP pattern (inject mediator)
 
@@ -781,13 +870,101 @@ Output:
 /* TODO: check the code in sample, TBD */
 ```
 
-## 5.6. Compose FAKE class
+## 5.6. Compose FAKE class (experimental)
 
 Create a class for Unit Tests that fake the real implementation. It's and alternative to Mocking approach.
 
 ```java
-/* TODO: check the code in sample, TBD */
+final FinalClass instance = new FinalClass();
+final MimicFinalClass proxy =
+        // return TRUE
+        when(M.RETURNBOOLEAN, (s, o) -> true, 
+          // call another implementation
+          when(M.DUMMYCALL, MyClass::anotherAction, 
+            // No Operation
+            when(M.BI_CONSUMER_DATA_OPTIONS, MyClass::noOp,
+              // convert final class instance to MimicFinalClass instance
+              $MimicFinalClass.bind(instance) 
+            )
+          )
+        );
+
+proxy.returnBoolean(); // will return `true`
+proxy.dummyCall(); // ~> forwarded to MyClass::anotherAction
+proxy.bi_consumer("data", "options"); // ~> forwarded to MyClass::noOp
 ```
+
+<details>
+<summary>Show helper code</summary>
+
+```java
+@Test
+public void chainedCalls() {
+    final FinalClass instance = new FinalClass();
+    final MimicFinalClass bindToInstance = $MimicFinalClass.bind(instance);
+
+    Mockito.when(mockAfterCall.apply(anyString(), any())).thenReturn(null);
+    Mockito.when(mockAfterCall2.apply(anyString(), any())).thenReturn(null);
+
+    final MimicFinalClass proxy =
+            when(M.RETURNBOOLEAN, (s, o) -> true,
+                    when(M.DUMMYCALL, mockAfterCall,
+                            when(M.BI_CONSUMER_DATA_OPTIONS, mockAfterCall2,
+                                    bindToInstance
+                            )
+                    )
+            );
+
+    assertThat(proxy.returnBoolean(), equalTo(true));
+
+    proxy.dummyCall();
+    Mockito.verify(mockAfterCall).apply(anyString(), any());
+
+    proxy.bi_consumer("data", "options");
+    Mockito.verify(mockAfterCall2).apply(anyString(), any());
+}
+```
+
+```java
+/** After call lambda injector. */
+@NonNull
+static MimicFinalClass create(MimicFinalClass instance,
+                              final BiFunction<String, Object, ?> afterCall) {
+    return create(instance, (m, args) -> true, afterCall);
+}
+
+/** Lambda injection helper. */
+static MimicFinalClass create(final MimicFinalClass instance,
+                              final BiFunction<String, Object[], Boolean> predicate,
+                              final BiFunction<String, Object, ?> afterCall) {
+    return new $MimicFinalClass(instance) {
+
+        @Override
+        public boolean predicate(@NonNull @M final String methodName, final Object... args) {
+            return predicate.apply(methodName, args);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public <T> T afterCall(@NonNull @M final String methodName, final T result) {
+            return (T) afterCall.apply(methodName, result);
+        }
+    };
+}
+
+/** Customize return of the specific method. */
+@NonNull
+static MimicFinalClass when(@NonNull @M String method,
+                            @NonNull final BiFunction<String, Object, ?> afterCall,
+                            @NonNull final MimicFinalClass instance) {
+    return create(instance,
+            // just forward result, or call afterCall
+            (String m, Object r) -> (method.equals(m)) ? afterCall.apply(m, r) : r
+    );
+}
+```
+
+</details>
 
 # 6. Troubles
 
@@ -881,7 +1058,7 @@ Disable DRY_RUN mode, that will allow binaries upload to the bintray side. Than 
 - [x] Proxy for final classes
 - [x] Yield predicate with customizable return (lambda expression) (use SKIP approach)
 - [x] Add Support for RxJava v2
-- [ ] Add Support for RxJava v3
+- [x] Add Support for RxJava v3
 - [x] customize Prefix of generated class "Proxy_" can be replaced by "Fake_" or "Stub_"
 - [ ] Allow Mutable inner instance, replace instance in runtime for proxy
 - [ ] Add Support for Kotlin language (generate code in Kotlin)

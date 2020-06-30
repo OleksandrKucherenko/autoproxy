@@ -4,5 +4,6 @@ include ':autoproxy-processor'
 include ':autoproxy-rx-annotations'
 include ':autoproxy-rx-generators'
 include ':autoproxy-rx2-generators'
+include ':autoproxy-rx3-generators'
 
 include ':sample'
