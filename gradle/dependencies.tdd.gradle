@@ -11,5 +11,10 @@ dependencies {
     testImplementation "org.mockito:mockito-core:${mockitoVersion}"
 
     /* Unit test */
-    testImplementation "junit:junit:${junitVersion}"
+    testImplementation("junit:junit:${junitVersion}") {
+        exclude group: "org.hamcrest"
+    }
+
+    /* https://mvnrepository.com/artifact/org.hamcrest/hamcrest/2.2 */
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 }
