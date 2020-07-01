@@ -1,0 +1,43 @@
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+    /* Google beta/alpha releases */
+    maven { url 'https://maven.google.com' }
+}
+
+dependencies {
+    /* Resolve Tools JDK library dependency */
+    implementation files("${System.properties['java.home']}/../lib/tools.jar")
+
+    /* Dependency to annotations */
+    implementation project(':autoproxy-annotations')
+    implementation project(':autoproxy-rx-annotations')
+    implementation project(':autoproxy-generators')
+    implementation "androidx.annotation:annotation:${supportVersion}"
+
+    /* CODE GENERATION */
+    implementation 'com.google.auto.service:auto-service:1.0-rc7'
+    implementation 'com.squareup:javapoet:1.13.0'
+
+    /* https://github.com/ReactiveX/RxJava/tree/3.x */
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.4'
+
+    apply from: rootProject.file('gradle/dependencies.tdd.gradle'), to:project
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+/* compose library variables needed for publishing */
+ext.description = 'AutoProxy RxJava 3.x extension. Provides extra AutoProxy code generators for RxJava projects.'
+apply from: rootProject.file('gradle/compose.credencials.gradle'), to:project
+apply from: project.file('credentials.gradle')
+
+/* https://github.com/nuuneoi/JCenter */
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+apply from: project.parent.file('gradle/bintrayv2.gradle')
+
+bintray.dryRun = bintray_dryrun
+tasks.bintrayUpload.dependsOn install

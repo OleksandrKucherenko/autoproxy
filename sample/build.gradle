@@ -87,14 +87,19 @@ dependencies {
     /* RxJava 2.xx - https://github.com/ReactiveX/RxJava/tree/2.x */
     implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
 
+    /* RxJava 3.xx - https://github.com/ReactiveX/RxJava/tree/3.x */
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.4'
+
     /* AutoProxy generator */
     compileOnly project(':autoproxy-annotations')
     compileOnly project(':autoproxy-rx-annotations')
     compileOnly project(':autoproxy-rx-generators')
     compileOnly project(':autoproxy-rx2-generators')
+    compileOnly project(':autoproxy-rx3-generators')
 
     kapt project(':autoproxy-rx-generators')
     kapt project(':autoproxy-rx2-generators')
+    kapt project(':autoproxy-rx3-generators')
     kapt project(':autoproxy-processor')
 
     /* AutoValue, https://github.com/google/auto */
