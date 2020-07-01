@@ -625,11 +625,11 @@ protected static MimicFinalClass bind(@NonNull final FinalClass instance) {
 
 ## 5.1. Mimic final class interface
 
-```java
-/* TODO: place diagram here */
-```
+[![Mimic Final Class Feature](https://i.imgur.com/E8u3ir0l.png)](https://imgur.com/E8u3ir0)
 
-Can be used for decoupling the code implementation from system (or 3rd party) final class that is impossible to mock or fake.
+**Problem:** system provides class that is impossible to inherit, override or mock (fake). Often it means that class declared as `final` and method of it declared as `final`.
+
+**Solution:** Mimic Final Class Feature. It can be used for decoupling the code implementation from system (or 3rd party) final class that is impossible to mock or fake.
 
 Generated code can be treated as a `binding by method name and signature` when proxy class resolves which method to call of the inner instance in last possible moment (runtime).
 
@@ -664,6 +664,12 @@ static MimicFinalClass proxy(FinalClass instance) {
     // return Proxy_MimicFinalClass.create(Proxy_MimicFinalClass.bind(instance), (m, args) -> true);
 }
 ```
+
+Code:
+- [FinalClass.java](sample/src/main/java/com/olku/autoproxy/sample/FinalClass.java)
+- [MimicFinalClass.java](sample/src/main/java/com/olku/autoproxy/sample/MimicFinalClass.java)
+
+
 </details>
 
 ## 5.2. Side effects
@@ -731,13 +737,13 @@ final MyClass instance =
 
 /* ... Use instance in code ... */    
 ```
+
+
 </details>
 
 ## 5.3. Runtime defined output value
 
-```java
-/* TODO: place diagram here */
-```
+[![Runtime defined output value](https://i.imgur.com/pLznX1Cl.png)](https://imgur.com/pLznX1C)
 
 `@AutoProxy.Yield(Returns.SKIP)` - feature
 
@@ -781,6 +787,7 @@ private Boolean computeSomething() {
     /* TODO: do own code here */
 }
 ```
+
 </details>
 
 ### 5.3.2. Skip Inner Class Call and Return Self Reference
@@ -963,6 +970,9 @@ static MimicFinalClass when(@NonNull @M String method,
     );
 }
 ```
+
+Code:
+- [MimicFinalClassTest.java](sample/src/test/java/com/olku/autoproxy/sample/MimicFinalClassTest.java)
 
 </details>
 
