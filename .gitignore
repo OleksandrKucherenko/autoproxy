@@ -69,3 +69,4 @@ version.properties
 
 # vscode java plugin
 .settings/
+.vscode/

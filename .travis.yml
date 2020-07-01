@@ -61,7 +61,9 @@ before_deploy:
   - export LIB_FILE3=$(ls autoproxy-processor/build/libs/autoproxy-*.jar)
   - export LIB_FILE4=$(ls autoproxy-rx-annotations/build/libs/autoproxy-*.jar)
   - export LIB_FILE5=$(ls autoproxy-rx-generators/build/libs/autoproxy-*.jar)
-  - echo "release file(s) $LIB_FILE1 $LIB_FILE2 $LIB_FILE3 $LIB_FILE4 $LIB_FILE5"
+  - export LIB_FILE6=$(ls autoproxy-rx2-generators/build/libs/autoproxy-*.jar)
+  - export LIB_FILE7=$(ls autoproxy-rx3-generators/build/libs/autoproxy-*.jar)
+  - echo "release file(s) $LIB_FILE1 $LIB_FILE2 $LIB_FILE3 $LIB_FILE4 $LIB_FILE5 $LIB_FILE6 $LIB_FILE7"
 
 # https://github.com/Bartvds/demo-travis-gh-pages
 # http://docs.travis-ci.com/user/deployment/releases/
@@ -74,6 +76,8 @@ deploy:
     - "${LIB_FILE3}"
     - "${LIB_FILE4}"
     - "${LIB_FILE5}"
+    - "${LIB_FILE6}"
+    - "${LIB_FILE7}"
   skip_cleanup: true
   on:
     tags: true
