@@ -37,7 +37,7 @@ Also known as a design pattern: proxy, delegate, interceptor.
     - [5.3.1. Skip Inner Class Call and Simple Return](#531-skip-inner-class-call-and-simple-return)
     - [5.3.2. Skip Inner Class Call and Return Self Reference](#532-skip-inner-class-call-and-return-self-reference)
   - [5.4. Customize Yield Return Types (Custom return type adapter)](#54-customize-yield-return-types-custom-return-type-adapter)
-  - [5.5. Decouple MVP pattern (inject mediator)](#55-decouple-mvp-pattern-inject-mediator)
+  - [5.5. Decouple MVC, MVP, MVVM patterns (inject mediator)](#55-decouple-mvc-mvp-mvvm-patterns-inject-mediator)
   - [5.6. Compose FAKE class (experimental)](#56-compose-fake-class-experimental)
 - [6. Troubles](#6-troubles)
   - [6.1. Reset submodule to remote repository version](#61-reset-submodule-to-remote-repository-version)
@@ -871,11 +871,20 @@ abstract fun completableMethod(): Completable
 
 </details>
 
-## 5.5. Decouple MVP pattern (inject mediator)
+## 5.5. Decouple MVC, MVP, MVVM patterns (inject mediator)
 
-```java
-/* TODO: check the code in sample, TBD */
-```
+[![MVC pattern](https://i.imgur.com/CsFyRI9h.png)](https://imgur.com/CsFyRI9)
+
+[![MVP pattern](https://i.imgur.com/SD6go98h.png)](https://imgur.com/SD6go98)
+
+[![MVVM pattern](https://i.imgur.com/5bI3XTKh.png)](https://imgur.com/5bI3XTK)
+
+All based on several refactoring steps:
+- introduce IView interface and extract to it common actions/methods from View
+- refactor Controler, Model, Presenter, ViewPresenter to use IView instead of View
+- annotate IVew as AutoProxy enabled
+- instead of instace of IView (VIEW is an implementation of it) start use instance of Proxy_IView.
+- that will break relation 1..1 and will make possible implementation 0..1 (or N..1)
 
 ## 5.6. Compose FAKE class (experimental)
 
