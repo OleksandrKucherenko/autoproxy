@@ -57,7 +57,7 @@ jobs:
           command: bash gradle/version-up.sh
       - run: # build
           name: Compile Debug Binaries
-          command: ./gradlew assembleDebug
+          command: ./gradlew assembleDebug --stacktrace --scan
 
   # RELEASE binaries
   release:
