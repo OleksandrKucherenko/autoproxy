@@ -88,7 +88,7 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
 
     /* RxJava 3.xx - https://github.com/ReactiveX/RxJava/tree/3.x */
-    implementation 'io.reactivex.rxjava3:rxjava:3.0.7'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.10'
 
     /* AutoProxy generator */
     compileOnly project(':autoproxy-annotations')
