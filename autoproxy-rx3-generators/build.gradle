@@ -21,7 +21,7 @@ dependencies {
     implementation 'com.squareup:javapoet:1.13.0'
 
     /* https://github.com/ReactiveX/RxJava/tree/3.x */
-    implementation 'io.reactivex.rxjava3:rxjava:3.0.7'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.12'
 
     apply from: rootProject.file('gradle/dependencies.tdd.gradle'), to:project
 }
