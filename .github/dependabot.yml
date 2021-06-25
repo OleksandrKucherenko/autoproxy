@@ -1,0 +1,29 @@
+version: 2
+updates:
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  assignees:
+  - OleksandrKucherenko
+  labels:
+  - dependencies
+  ignore:
+  - dependency-name: io.reactivex.rxjava3:rxjava
+    versions:
+    - 3.0.10
+    - 3.0.11
+    - 3.0.9
+  - dependency-name: com.google.auto.value:auto-value-annotations
+    versions:
+    - 1.7.5
+    - "1.8"
+  - dependency-name: com.google.auto.value:auto-value
+    versions:
+    - 1.7.5
+    - "1.8"
+  - dependency-name: io.reactivex.rxjava2:rxjava
+    versions:
+    - 2.2.20
